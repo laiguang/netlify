@@ -3,547 +3,589 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>专注水平仪</title>
-    <!-- 引入圆润可爱的字体 -->
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <title>专注水平仪计时器</title>
+    <!-- 引入 FontAwesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg-color: #E0F7FA; /* 冰雪蓝背景 */
-            --glass-white: rgba(255, 255, 255, 0.85);
-            --ac-blue: #2BBBAD;
-            --ac-text: #546E7A;
-            --neon-red: #FF1744;
-            --neon-green: #00E676;
-            --shadow-red: 0 0 15px var(--neon-red), inset 0 0 10px var(--neon-red);
-            --shadow-green: 0 0 15px var(--neon-green), inset 0 0 10px var(--neon-green);
+        /* --- 全局重置与字体 --- */
+        * {
+            box-sizing: border-box;
+            user-select: none; /* 禁止选中文本 */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-        
         body {
             margin: 0;
             padding: 0;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.4) 10%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.4) 10%, transparent 20%);
-            font-family: 'Nunito', sans-serif;
-            color: var(--ac-text);
+            width: 100vw;
             overflow: hidden;
-            position: relative;
+            font-family: "Quicksand", "Varela Round", "Microsoft YaHei", sans-serif;
+            /* 动森冬季背景：淡蓝渐变 */
+            background: linear-gradient(to bottom, #dbebf7 0%, #eef6fa 60%, #ffffff 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #5d7482;
         }
 
-        /* 雪花画布层 */
+        /* --- 布局容器 --- */
+        #app-container {
+            position: relative;
+            width: 90vmin;
+            height: 90vmin;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10; /* 保证 UI 在雪花之上 */
+        }
+
+        /* --- 顶部：角度显示 --- */
+        .angle-display {
+            font-size: 8vmin;
+            font-weight: bold;
+            color: #546e7a;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
+        }
+
+        /* --- 中上部：水平仪 --- */
+        .level-wrapper {
+            position: relative;
+            width: 40vmin;
+            height: 40vmin;
+            border-radius: 50%;
+            /* 磨砂玻璃效果 */
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5vmin solid rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                0 10px 20px rgba(0,0,0,0.1),
+                inset 0 5px 15px rgba(255,255,255,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 中心准星装饰 */
+        .crosshair {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .crosshair::before, .crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(93, 116, 130, 0.2);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .crosshair::before { width: 80%; height: 2px; }
+        .crosshair::after { width: 2px; height: 80%; }
+        
+        /* 中心目标圈 */
+        .target-circle {
+            position: absolute;
+            width: 12vmin;
+            height: 12vmin;
+            border: 2px dashed rgba(93, 116, 130, 0.4);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 重心气泡 */
+        #bubble {
+            width: 8vmin;
+            height: 8vmin;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* 初始居中，JS控制 translate 偏移 */
+            transition: background 0.3s, box-shadow 0.3s, transform 0.1s linear;
+        }
+
+        /* 霓虹红（不平） */
+        .bubble-bad {
+            background: rgba(255, 80, 80, 0.9);
+            box-shadow: 0 0 15px 5px rgba(255, 80, 80, 0.6);
+            border: 2px solid #fff;
+        }
+
+        /* 霓虹绿（水平） */
+        .bubble-good {
+            background: rgba(50, 255, 100, 0.9);
+            box-shadow: 0 0 15px 5px rgba(50, 255, 100, 0.6);
+            border: 2px solid #fff;
+        }
+
+        /* --- 中下部：计时器 --- */
+        .timer-display {
+            font-size: 10vmin;
+            font-family: monospace; /* 等宽字体保证数字跳动不抖动 */
+            font-weight: bold;
+            color: #455a64;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 2vmin 4vmin;
+            border-radius: 20px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* --- 下部：按钮区 --- */
+        .controls {
+            display: flex;
+            gap: 5vmin;
+            height: 15vmin; /* 占位高度 */
+            align-items: flex-end;
+        }
+
+        .btn {
+            width: 15vmin;
+            height: 15vmin;
+            border-radius: 25%; /* 方形圆角 */
+            border: none;
+            background: #fff;
+            color: #5d7482;
+            font-size: 6vmin;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-play { color: #81c784; }
+        .btn-pause { color: #ffd54f; font-size: 5vmin; }
+        .btn-reset { color: #e57373; }
+        
+        .countdown-text {
+            font-size: 5vmin;
+            color: #5d7482;
+        }
+
+        /* --- 雪花 Canvas --- */
         #snow-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 10;
+            pointer-events: none; /* 确保不阻挡点击 */
+            z-index: 5;
         }
 
-        /* 顶部角度显示 */
-        .angle-display {
-            margin-top: 10vh;
-            font-size: 2.5rem;
-            font-weight: 700;
-            text-shadow: 2px 2px 0px white;
-            z-index: 20;
-        }
-
-        /* 中间水平仪区域 */
-        .level-container {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            z-index: 20;
-        }
-
-        .level-outer {
-            width: 280px;
-            height: 280px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 4px solid white;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            position: relative;
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* 中心准星 */
-        .level-center-mark {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px dashed rgba(255,255,255,0.6);
-            position: absolute;
-        }
-
-        .level-bubble {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            position: absolute;
-            transition: transform 0.1s linear, box-shadow 0.3s ease, background 0.3s ease;
-            transform: translate(0, 0);
-            /* 默认红色状态 */
-            background: rgba(255, 23, 68, 0.1);
-            border: 2px solid var(--neon-red);
-            box-shadow: var(--shadow-red);
-        }
-
-        .level-bubble.level-ok {
-            background: rgba(0, 230, 118, 0.1);
-            border: 2px solid var(--neon-green);
-            box-shadow: var(--shadow-green);
-        }
-
-        /* 下方计时区 */
-        .timer-display {
-            font-size: 3rem;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            margin-bottom: 20px;
-            background: var(--glass-white);
-            padding: 10px 30px;
-            border-radius: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            z-index: 20;
-        }
-
-        /* 按钮区 */
-        .controls {
-            height: 15vh;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            width: 70px;
-            height: 70px;
-            border-radius: 20px;
-            background: white;
-            border: none;
-            box-shadow: 0 8px 0 #E0E0E0;
-            font-size: 1.5rem;
-            color: var(--ac-text);
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-
-        .btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 #E0E0E0;
-        }
-
-        .btn-count {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--ac-blue);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* PC交互提示覆盖层 */
-        #pc-instruction {
-            display: none;
-        }
-
-        @media (min-width: 768px) {
-            .level-outer {
-                width: 350px;
-                height: 350px;
-            }
-        }
+        /* --- 提示弹窗 --- */
+        .hidden { display: none !important; }
+        
     </style>
 </head>
 <body>
 
-    <!-- 雪花层 -->
+    <!-- 雪花画布 -->
     <canvas id="snow-canvas"></canvas>
 
-    <!-- 顶部角度 -->
-    <div class="angle-display" id="angleText">0°</div>
+    <div id="app-container">
+        <!-- 角度显示 -->
+        <div class="angle-display" id="angle-text">0°</div>
 
-    <!-- 中间水平仪 -->
-    <div class="level-container">
-        <div class="level-outer" id="levelOuter">
-            <div class="level-center-mark"></div>
-            <div class="level-bubble" id="bubble"></div>
+        <!-- 水平仪 -->
+        <div class="level-wrapper" id="level-area">
+            <div class="crosshair"></div>
+            <div class="target-circle"></div>
+            <div id="bubble" class="bubble-bad"></div>
+        </div>
+
+        <!-- 计时器 -->
+        <div class="timer-display" id="timer-text">00 : 00 : 00</div>
+
+        <!-- 按钮区 -->
+        <div class="controls">
+            <!-- 播放/倒计时按钮 -->
+            <button id="btn-main" class="btn btn-play">
+                <i class="fas fa-play"></i>
+            </button>
+            <!-- 重置按钮 (初始隐藏) -->
+            <button id="btn-reset" class="btn btn-reset hidden">
+                <i class="fas fa-undo"></i>
+            </button>
         </div>
     </div>
 
-    <!-- 下方计时器 -->
-    <div class="timer-display" id="timer">00 : 00 : 00</div>
-
-    <!-- 按钮区 -->
-    <div class="controls">
-        <!-- 初始播放/倒计时按钮 -->
-        <button class="btn" id="btnPlay">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z"/>
-            </svg>
-        </button>
-        
-        <!-- 暂停后的双按钮组 -->
-        <button class="btn hidden" id="btnResume">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z"/>
-            </svg>
-        </button>
-        <button class="btn hidden" id="btnRestart">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-            </svg>
-        </button>
-    </div>
-
     <script>
-        // --- 核心状态 ---
-        const state = {
-            angle: 0,
-            isLevel: true, // 是否水平
-            status: 'idle', // idle, counting_down, running, paused
-            startTime: 0,
-            elapsedTime: 0, // ms
-            timerInterval: null,
-            bubbleX: 0,
-            bubbleY: 0
+        /**
+         * 状态机定义
+         * IDLE: 初始状态
+         * COUNTDOWN: 点击播放后的5秒倒计时
+         * RUNNING: 计时进行中
+         * PAUSED: 被打断或暂停
+         */
+        const STATE = {
+            IDLE: 'idle',
+            COUNTDOWN: 'countdown',
+            RUNNING: 'running',
+            PAUSED: 'paused'
         };
 
-        // --- DOM 元素 ---
-        const ui = {
-            angle: document.getElementById('angleText'),
-            outer: document.getElementById('levelOuter'),
-            bubble: document.getElementById('bubble'),
-            timer: document.getElementById('timer'),
-            btnPlay: document.getElementById('btnPlay'),
-            btnResume: document.getElementById('btnResume'),
-            btnRestart: document.getElementById('btnRestart'),
-            snowCanvas: document.getElementById('snow-canvas')
-        };
-
-        // --- 水平仪逻辑 (核心) ---
-        const MAX_TILT = 30; // 最大显示倾斜度
-        const RADIUS = ui.outer.offsetWidth / 2 - 20; // 气泡活动半径
+        let currentState = STATE.IDLE;
         
-        function updateBubble(xTilt, yTilt) {
-            // 计算总倾斜角度 (勾股定理)
-            let tiltMagnitude = Math.sqrt(xTilt*xTilt + yTilt*yTilt);
-            state.angle = Math.round(tiltMagnitude);
-            ui.angle.innerText = state.angle + '°';
+        // 变量
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let countdownInterval = null;
+        let currentAngle = 0; // 当前倾斜角度
+        const ALLOWED_ANGLE = 3; // 允许的误差角度
+        let isLevel = false;
 
-            // 限制气泡在圆内
-            const distance = Math.min(tiltMagnitude * 5, RADIUS); // 敏感度系数
-            const angleRad = Math.atan2(yTilt, xTilt);
-            
-            const px = Math.cos(angleRad) * distance;
-            const py = Math.sin(angleRad) * distance;
+        // DOM 元素
+        const elAngle = document.getElementById('angle-text');
+        const elBubble = document.getElementById('bubble');
+        const elTimer = document.getElementById('timer-text');
+        const btnMain = document.getElementById('btn-main');
+        const btnReset = document.getElementById('btn-reset');
+        const levelArea = document.getElementById('level-area');
+        
+        // --- 核心逻辑控制 ---
 
-            ui.bubble.style.transform = `translate(${px}px, ${py}px)`;
-
-            // 判断是否水平 (误差±3°)
-            // 注意：这里我们用 tiltMagnitude 作为总倾斜度判断
-            const isNowLevel = tiltMagnitude <= 3;
-            
-            if (isNowLevel !== state.isLevel) {
-                state.isLevel = isNowLevel;
-                if (isNowLevel) {
-                    ui.bubble.classList.add('level-ok');
-                } else {
-                    ui.bubble.classList.remove('level-ok');
+        // 主按钮点击事件
+        btnMain.addEventListener('click', async () => {
+            // iOS 权限请求 (必须在用户点击事件中触发)
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const response = await DeviceOrientationEvent.requestPermission();
+                    if (response !== 'granted') {
+                        alert('需要陀螺仪权限才能检测手机是否平放。');
+                        return;
+                    }
+                } catch (e) {
+                    console.error(e);
                 }
             }
 
-            // 如果正在计时，且水平状态被打破
-            if (state.status === 'running' && !isNowLevel) {
-                pauseTimer("balance_lost");
+            // 启用 Wake Lock (防止屏幕熄灭)
+            requestWakeLock();
+
+            if (currentState === STATE.IDLE || currentState === STATE.PAUSED) {
+                startCountdown();
+            } else if (currentState === STATE.RUNNING) {
+                // 如果在运行中点击，视为暂停（虽然需求说运行中不能操作，但如果用户强制操作，应该暂停）
+                pauseTimer(); 
+            }
+        });
+
+        // 重置按钮点击事件
+        btnReset.addEventListener('click', () => {
+            resetAll();
+        });
+
+        // 开始倒计时逻辑
+        function startCountdown() {
+            currentState = STATE.COUNTDOWN;
+            let count = 5;
+            
+            // 隐藏重置按钮，改变主按钮样式
+            btnReset.classList.add('hidden');
+            btnMain.innerHTML = `<span class="countdown-text">${count}</span>`;
+            btnMain.className = 'btn'; // 移除特定颜色，用默认灰或保留背景
+
+            // 立即开始雪花生成（预览）
+            SnowSystem.isGenerating = true;
+            SnowSystem.isFrozen = false;
+            SnowSystem.isClearing = false;
+
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    btnMain.innerHTML = `<span class="countdown-text">${count}</span>`;
+                } else {
+                    // 倒计时结束
+                    clearInterval(countdownInterval);
+                    checkLevelAndStart();
+                }
+            }, 1000);
+        }
+
+        // 倒计时结束检查
+        function checkLevelAndStart() {
+            if (isLevel) {
+                // 水平，开始计时
+                startTimer();
+            } else {
+                // 不水平
+                alert("请保持设备水平");
+                // 回到暂停状态，显示重新开始和继续(Play)
+                currentState = STATE.PAUSED;
+                renderControlsForPaused();
+                SnowSystem.isGenerating = false;
             }
         }
 
-        // --- 输入事件监听 ---
-
-        // 1. 移动端陀螺仪
-        window.addEventListener('deviceorientation', (event) => {
-            // beta: x轴倾斜 (-180, 180), gamma: y轴倾斜 (-90, 90)
-            let x = event.gamma || 0; // 左右倾斜
-            let y = event.beta || 0;  // 前后倾斜
+        // 开始正式计时
+        function startTimer() {
+            currentState = STATE.RUNNING;
+            const now = Date.now();
+            // 减去已逝去的时间，保证暂停后继续时间准确
+            startTime = now - elapsedTime;
             
-            // 修正：一般手机平放时 beta 为 0, gamma 为 0
-            // 限制一下最大值，防止气泡飞太远逻辑混乱
-            if (x > 90) x = 90; if (x < -90) x = -90;
-            if (y > 90) y = 90; if (y < -90) y = -90;
+            // UI 更新
+            btnMain.innerHTML = '<i class="fas fa-pause"></i>'; // 变为暂停图标
+            btnMain.className = 'btn btn-pause'; // 变黄
+            btnReset.classList.add('hidden'); // 运行时不允许重置
 
-            updateBubble(x, y);
-        });
+            timerInterval = setInterval(() => {
+                const currentNow = Date.now();
+                elapsedTime = currentNow - startTime;
+                updateTimerDisplay(elapsedTime);
+                
+                // 实时检测防作弊
+                if (!isLevel) {
+                    pauseTimer();
+                }
+            }, 100); // 100ms 刷新一次即可
 
-        // 2. 电脑端鼠标模拟
-        window.addEventListener('mousemove', (e) => {
-            const rect = ui.outer.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
+            // 雪花系统
+            SnowSystem.isGenerating = true;
+            SnowSystem.isFrozen = false;
+        }
 
-            // 计算鼠标相对于圆心的位置
-            let dx = e.clientX - centerX;
-            let dy = e.clientY - centerY;
+        // 暂停计时
+        function pauseTimer() {
+            currentState = STATE.PAUSED;
+            clearInterval(timerInterval);
+            
+            // 雪花冻结
+            SnowSystem.isFrozen = true;
+            
+            renderControlsForPaused();
+        }
 
-            // 映射距离到角度 (模拟: 距离圆心100px = 10度)
-            const factor = 0.1; 
-            updateBubble(dx * factor, dy * factor);
-        });
+        // 渲染暂停时的按钮状态
+        function renderControlsForPaused() {
+            // 显示“播放”（继续）和“重置”
+            btnMain.innerHTML = '<i class="fas fa-play"></i>';
+            btnMain.className = 'btn btn-play';
+            btnReset.classList.remove('hidden');
+        }
 
+        // 重置所有
+        function resetAll() {
+            currentState = STATE.IDLE;
+            clearInterval(timerInterval);
+            clearInterval(countdownInterval);
+            elapsedTime = 0;
+            updateTimerDisplay(0);
+            
+            btnMain.innerHTML = '<i class="fas fa-play"></i>';
+            btnMain.className = 'btn btn-play';
+            btnReset.classList.add('hidden');
 
-        // --- 计时器逻辑 ---
+            // 雪花飘走
+            SnowSystem.isFrozen = false;
+            SnowSystem.isGenerating = false;
+            SnowSystem.isClearing = true;
+        }
 
-        function formatTime(ms) {
+        function updateTimerDisplay(ms) {
             const totalSeconds = Math.floor(ms / 1000);
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60);
             const s = totalSeconds % 60;
-            return `${String(h).padStart(2, '0')} : ${String(m).padStart(2, '0')} : ${String(s).padStart(2, '0')}`;
+            
+            const fmt = (n) => n.toString().padStart(2, '0');
+            elTimer.textContent = `${fmt(h)} : ${fmt(m)} : ${fmt(s)}`;
         }
 
-        function startCountdown(onComplete) {
-            state.status = 'counting_down';
-            let count = 5;
-            
-            // 隐藏其他按钮，显示倒计时在主按钮上
-            ui.btnPlay.classList.remove('hidden');
-            ui.btnResume.classList.add('hidden');
-            ui.btnRestart.classList.add('hidden');
-            
-            // 禁用点击
-            ui.btnPlay.disabled = true;
-            ui.btnPlay.innerHTML = `<span class="btn-count">${count}</span>`;
+        // --- 物理/输入逻辑 ---
 
-            const intv = setInterval(() => {
-                count--;
-                if (count > 0) {
-                    ui.btnPlay.innerHTML = `<span class="btn-count">${count}</span>`;
-                } else {
-                    clearInterval(intv);
-                    ui.btnPlay.disabled = false;
-                    onComplete();
-                }
-            }, 1000);
-        }
-
-        function startTimer() {
-            // 检查水平
-            if (!state.isLevel) {
-                alert("请保持设备水平");
-                resetToIdle();
-                return;
+        // 处理角度更新 UI 和 状态
+        function updateLevelStatus(angle, xOffsetPct, yOffsetPct) {
+            currentAngle = Math.round(angle);
+            elAngle.textContent = `${currentAngle}°`;
+            
+            // 限制气泡移动范围在圆内
+            // xOffsetPct, yOffsetPct 输入约为 -1 到 1 之间 (取决于灵敏度)
+            const maxR = 40; // max radius percent
+            let dist = Math.sqrt(xOffsetPct*xOffsetPct + yOffsetPct*yOffsetPct);
+            if (dist > 1) {
+                xOffsetPct /= dist;
+                yOffsetPct /= dist;
             }
 
-            state.status = 'running';
-            // UI 变更
-            ui.btnPlay.classList.add('hidden'); // 隐藏原播放按钮
-            ui.btnResume.classList.add('hidden');
-            ui.btnRestart.classList.add('hidden');
-            
-            // 显示暂停图标 (虽然此时没有按钮显示，根据需求2: 
-            // "显示暂停图标...开始计时"。这里有点歧义，如果按钮区没按钮，暂停图标显示在哪？
-            // 结合需求3 "暂停按钮被点击"，说明此时应该显示一个暂停按钮)
-            // 既然播放按钮消失了，我们复用 play 按钮的位置显示 Pause，或者直接显示“工作中...”
-            // 根据需求3，需要能点击暂停。所以我们把 btnPlay 变成暂停样式。
-            
-            ui.btnPlay.classList.remove('hidden');
-            ui.btnPlay.innerHTML = `
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                </svg>
-            `;
+            // 更新气泡位置
+            // translate(-50%, -50%) 是基准，加上偏移
+            // 偏移量：40vmin 是容器宽，半径是 20vmin。
+            // 我们移动气泡中心。
+            // 简单起见，用百分比控制 transform
+            const moveX = xOffsetPct * 15; // 15vmin 偏移
+            const moveY = yOffsetPct * 15;
 
-            // 启动计时
-            const startTimestamp = Date.now() - state.elapsedTime;
-            state.timerInterval = setInterval(() => {
-                state.elapsedTime = Date.now() - startTimestamp;
-                ui.timer.innerText = formatTime(state.elapsedTime);
-            }, 1000);
+            elBubble.style.transform = `translate(calc(-50% + ${moveX}vmin), calc(-50% + ${moveY}vmin))`;
 
-            // 启动雪花生成
-            snowSystem.isGenerating = true;
-            snowSystem.isFrozen = false;
-        }
-
-        function pauseTimer(reason) {
-            state.status = 'paused';
-            clearInterval(state.timerInterval);
-            
-            // 雪花静止
-            snowSystem.isFrozen = true;
-            snowSystem.isGenerating = false;
-
-            // UI 变更
-            ui.btnPlay.classList.add('hidden'); // 隐藏暂停(原Play)按钮
-            ui.btnResume.classList.remove('hidden'); // 显示继续
-            ui.btnRestart.classList.remove('hidden'); // 显示重开
-
-            if (reason === "balance_lost") {
-                // 需求不显示文字，但通常这里用户会困惑为什么停了，不过按照需求"不出现提示性文字"
+            // 判断是否水平
+            if (currentAngle <= ALLOWED_ANGLE) {
+                isLevel = true;
+                elBubble.className = 'bubble-good';
+            } else {
+                isLevel = false;
+                elBubble.className = 'bubble-bad';
             }
         }
 
-        function resetToIdle() {
-            state.status = 'idle';
-            clearInterval(state.timerInterval);
-            state.elapsedTime = 0;
-            ui.timer.innerText = "00 : 00 : 00";
+        // 设备检测
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-            // 按钮重置
-            ui.btnPlay.classList.remove('hidden');
-            ui.btnPlay.disabled = false;
-            ui.btnPlay.innerHTML = `
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z"/>
-                </svg>
-            `;
-            ui.btnResume.classList.add('hidden');
-            ui.btnRestart.classList.add('hidden');
+        if (isMobile) {
+            // --- 手机逻辑 (陀螺仪) ---
+            window.addEventListener('deviceorientation', (event) => {
+                // beta: 前后倾斜 (-180, 180) -> y
+                // gamma: 左右倾斜 (-90, 90) -> x
+                
+                let x = event.gamma || 0; 
+                let y = event.beta || 0;
 
-            // 雪花逻辑：停止生成，现有雪花飘走
-            snowSystem.isFrozen = false; // 解冻
-            snowSystem.isGenerating = false; // 不再生新
-            snowSystem.clearOnExit = true; // 标记为清场模式
-        }
+                // 简单的角度计算：取绝对值最大的倾斜作为主要角度参考，或者综合向量
+                // 这里为了简化体验，计算偏离水平面的综合角度
+                // 近似公式
+                const angle = Math.sqrt(x*x + y*y);
 
-        // --- 按钮事件绑定 ---
+                // UI 映射 (-1 到 1)
+                // 假设 45度 为最大显示偏移
+                const sensitivity = 45;
+                let xPct = x / sensitivity;
+                let yPct = y / sensitivity;
 
-        ui.btnPlay.addEventListener('click', () => {
-            if (state.status === 'idle') {
-                startCountdown(() => {
-                    startTimer();
-                });
-            } else if (state.status === 'running') {
-                // 此时它是暂停按钮
-                pauseTimer("user_click");
-            }
-        });
-
-        ui.btnResume.addEventListener('click', () => {
-            // 点击继续，5s倒计时后继续
-            startCountdown(() => {
-                startTimer();
+                updateLevelStatus(angle, xPct, yPct);
             });
-        });
+        } else {
+            // --- 电脑逻辑 (鼠标模拟) ---
+            document.addEventListener('mousemove', (e) => {
+                // 获取 level-wrapper 的中心点
+                const rect = levelArea.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
 
-        ui.btnRestart.addEventListener('click', () => {
-            resetToIdle();
-        });
+                const dx = e.clientX - centerX;
+                const dy = e.clientY - centerY;
 
+                // 距离中心的像素距离
+                const distancePx = Math.sqrt(dx*dx + dy*dy);
+                
+                // 定义多少像素等于1度。假设 10px = 1度
+                const angle = distancePx / 10;
+
+                // 归一化偏移用于UI (以半径为基准)
+                const maxDist = Math.max(window.innerWidth, window.innerHeight) / 2;
+                const xPct = dx / (rect.width / 2); // 相对于圆盘半径
+                const yPct = dy / (rect.height / 2);
+
+                updateLevelStatus(angle, xPct, yPct);
+            });
+            
+            // 鼠标移出窗口处理（视为严重倾斜）
+            document.addEventListener('mouseleave', () => {
+                updateLevelStatus(90, 1, 1);
+            });
+        }
+
+        // --- Wake Lock API (防息屏) ---
+        let wakeLock = null;
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                } catch (err) {
+                    console.log(`${err.name}, ${err.message}`);
+                }
+            }
+        }
 
         // --- 雪花系统 (Canvas) ---
-        const ctx = ui.snowCanvas.getContext('2d');
-        let width, height;
-
-        function resize() {
-            width = ui.snowCanvas.width = window.innerWidth;
-            height = ui.snowCanvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Snowflake {
-            constructor() {
-                this.init();
-            }
-
-            init() {
-                this.x = Math.random() * width;
-                this.y = -10;
-                this.size = Math.random() * 3 + 2;
-                this.speedY = Math.random() * 1 + 0.5;
-                this.speedX = Math.random() * 1 - 0.5;
-                this.opacity = Math.random() * 0.5 + 0.3;
-            }
-
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-
-                // 如果是在清场模式，或者正常生成模式下出了屏幕
-                if (this.y > height) {
-                    if (snowSystem.isGenerating) {
-                        this.y = -10;
-                        this.x = Math.random() * width;
-                    } else {
-                        // 如果不生成新雪花，标记为dead
-                        return false; 
-                    }
-                }
-                return true;
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-
-        const snowSystem = {
-            flakes: [],
+        const SnowSystem = {
+            canvas: document.getElementById('snow-canvas'),
+            ctx: null,
+            particles: [],
             isGenerating: false,
             isFrozen: false,
-            clearOnExit: false,
-            lastGenTime: 0
-        };
+            isClearing: false,
+            
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.loop();
+            },
 
-        function animateSnow(timestamp) {
-            ctx.clearRect(0, 0, width, height);
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
 
-            // 生成新雪花
-            if (snowSystem.isGenerating && !snowSystem.isFrozen) {
-                if (timestamp - snowSystem.lastGenTime > 200) { // 控制生成频率
-                    snowSystem.flakes.push(new Snowflake());
-                    snowSystem.lastGenTime = timestamp;
-                }
-            }
+            createParticle() {
+                // 随机位置（顶部），随机大小，随机模糊
+                return {
+                    x: Math.random() * this.canvas.width,
+                    y: -10,
+                    radius: Math.random() * 3 + 2, // 2-5px
+                    speed: Math.random() * 1 + 0.5, // 下落速度
+                    sway: Math.random() * 0.02 - 0.01, // 左右飘动
+                    opacity: Math.random() * 0.5 + 0.3
+                };
+            },
 
-            // 更新和绘制
-            for (let i = snowSystem.flakes.length - 1; i >= 0; i--) {
-                const flake = snowSystem.flakes[i];
-                
-                // 只有未冻结时才更新位置
-                if (!snowSystem.isFrozen) {
-                    const active = flake.update();
-                    if (!active) {
-                        snowSystem.flakes.splice(i, 1);
-                        continue;
+            loop() {
+                const { ctx, canvas } = this;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // 生成新雪花
+                if (this.isGenerating && !this.isFrozen && !this.isClearing) {
+                    if (Math.random() < 0.1) { // 生成频率
+                        this.particles.push(this.createParticle());
                     }
                 }
-                
-                flake.draw();
+
+                // 更新和绘制
+                for (let i = 0; i < this.particles.length; i++) {
+                    let p = this.particles[i];
+
+                    // 如果没冻结，或者正在清理（飘出），则更新位置
+                    if (!this.isFrozen || this.isClearing) {
+                        p.y += p.speed;
+                        p.x += Math.sin(p.y * 0.01) * 0.5; // 简单摆动
+                    }
+
+                    // 绘制
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                    // 模拟模糊边缘
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = "white";
+                    ctx.fill();
+                    ctx.shadowBlur = 0; // reset
+                }
+
+                // 移除跑出屏幕的雪花
+                this.particles = this.particles.filter(p => p.y < canvas.height + 10);
+
+                requestAnimationFrame(() => this.loop());
             }
+        };
 
-            requestAnimationFrame(animateSnow);
-        }
-
-        requestAnimationFrame(animateSnow);
+        SnowSystem.init();
 
     </script>
 </body>
