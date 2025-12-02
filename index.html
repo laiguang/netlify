@@ -3,55 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC Winter Focus</title>
-    <!-- 引入圆体字 -->
+    <title>Cozy Focus Leveler</title>
+    <!-- 引入圆润可爱的字体 (M PLUS Rounded 1c) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
     
     <style>
+        /* --- 1. 变量定义：四季配色系统 --- */
         :root {
-            /* Palette */
-            --bg-color: #ccdbdc;
-            --container-color: #9ad1d4;
-            --highlight-color: #80ced7;
-            --text-color: #007ea7;
-            --white: #FFFFFF;
-            --error-color: #e07a5f;
+            /* 默认春季 */
+            --bg-color: #FFF5F5;
+            --pattern-color: rgba(255, 183, 178, 0.2);
+            --card-bg: #FFDAC1;
+            --accent-color: #FFB7B2;
+            --text-color: #E27D60;
             --glass-border: rgba(255, 255, 255, 0.4);
-            
-            /* Shapes & Animation */
-            --radius-xl: 40px;
-            --radius-md: 20px;
-            --shadow-soft: 0 10px 25px rgba(0, 126, 167, 0.15);
-            --shadow-inset: inset 0 4px 6px rgba(255, 255, 255, 0.6), inset 0 -4px 6px rgba(0, 126, 167, 0.05);
-            --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --safe-green: #95D5B2; /* 水平时显示的绿色 */
+            --warn-red: #FFB7B2;   /* 不水平显示的红色 */
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
+        /* 夏季 */
+        [data-theme="summer"] {
+            --bg-color: #F0FFF4;
+            --pattern-color: rgba(149, 213, 178, 0.2);
+            --card-bg: #B7E4C7;
+            --accent-color: #95D5B2;
+            --text-color: #40916C;
+            --safe-green: #52B788;
+            --warn-red: #E07A5F;
         }
 
+        /* 秋季 */
+        [data-theme="autumn"] {
+            --bg-color: #FFF8F0;
+            --pattern-color: rgba(226, 149, 120, 0.2);
+            --card-bg: #F6BD60;
+            --accent-color: #E29578;
+            --text-color: #A65D48;
+            --safe-green: #81B29A;
+            --warn-red: #E29578;
+        }
+
+        /* 冬季 */
+        [data-theme="winter"] {
+            --bg-color: #F0FBFC;
+            --pattern-color: rgba(152, 193, 217, 0.2);
+            --card-bg: #E0FBFC;
+            --accent-color: #98C1D9;
+            --text-color: #3D5A80;
+            --safe-green: #3D5A80;
+            --warn-red: #EE6C4D;
+        }
+
+        /* 暗黑模式 */
+        [data-theme="dark"] {
+            --bg-color: #293241;
+            --pattern-color: rgba(255, 255, 255, 0.05);
+            --card-bg: rgba(61, 90, 128, 0.8);
+            --accent-color: #3D5A80;
+            --text-color: #E0FBFC;
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --safe-green: #98C1D9;
+            --warn-red: #EE6C4D;
+        }
+
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
         body {
             margin: 0;
             padding: 0;
             width: 100vw;
             height: 100vh;
+            overflow: hidden;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
             background-color: var(--bg-color);
-            /* 噪点纹理 */
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
-            font-family: 'Nunito', sans-serif;
-            color: var(--text-color);
+            /* 六角雪花背景纹理 */
+            background-image: radial-gradient(var(--pattern-color) 15%, transparent 16%),
+                              radial-gradient(var(--pattern-color) 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            transition: background 0.5s ease;
         }
 
-        /* 背景雪花 Canvas */
+        /* 雪花画布 */
         #snowCanvas {
             position: absolute;
             top: 0;
@@ -59,609 +97,496 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1;
+            z-index: 10;
         }
 
-        /* NookPhone 风格容器 */
+        /* --- 2. 主容器：NookPhone APP 风格 --- */
         .app-container {
-            position: relative;
             width: 90%;
-            max-width: 380px;
-            height: 80vh;
-            max-height: 700px;
-            background-color: var(--container-color);
-            border-radius: var(--radius-xl);
+            max-width: 450px;
+            height: 85vh;
+            max-height: 800px;
+            background: var(--card-bg);
+            border-radius: 40px; /* 大圆角 */
             box-shadow: 
-                var(--shadow-soft),
-                inset 0 0 0 4px rgba(255,255,255,0.3);
+                0 20px 50px rgba(0,0,0,0.1),
+                inset 0 2px 5px rgba(255,255,255,0.4); /* 顶部高光，增加厚度感 */
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 30px 20px;
-            z-index: 10;
-            transition: transform 0.1s ease;
-        }
-
-        /* 1. Inclinometer */
-        .header-degree {
-            font-size: 3rem;
-            font-weight: 900;
-            color: var(--text-color);
-            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
-            margin-bottom: 20px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* 2. Spirit Level (Ice Bubble) */
-        .level-wrapper {
             position: relative;
-            width: 240px;
-            height: 240px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 4px solid var(--glass-border);
-            box-shadow: inset 0 0 20px rgba(255,255,255,0.5);
+            z-index: 5;
+            transition: all 0.5s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        /* --- 3. 顶部角度显示 --- */
+        .header-angle {
+            font-size: 24px;
+            color: var(--text-color);
+            font-weight: 800;
+            margin-bottom: 20px;
+            opacity: 0.8;
+            min-height: 36px;
+        }
+
+        /* --- 4. 水平仪区域 (核心视觉) --- */
+        .leveler-box {
+            width: 260px;
+            height: 260px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50px; /* Squircle */
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 30px;
-            overflow: hidden;
-            transition: border-color 0.3s ease;
+            border: 4px solid var(--glass-border);
+            /* 柔和的外发光代替霓虹 */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
-        /* 中心目标圆环 */
-        .level-target {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            border: 2px dashed rgba(255,255,255,0.8);
+        /* 状态光效类 */
+        .leveler-box.is-level {
+            box-shadow: 0 0 40px var(--safe-green), inset 0 0 20px rgba(255,255,255,0.5);
+            border-color: var(--safe-green);
+        }
+        .leveler-box.not-level {
+            box-shadow: 0 0 30px var(--warn-red);
+            border-color: var(--warn-red);
+        }
+
+        /* 虚线误差圆环 */
+        .target-ring {
+            width: 80px;
+            height: 80px;
+            border: 3px dashed var(--text-color);
             border-radius: 50%;
-            z-index: 2;
+            position: absolute;
+            opacity: 0.3;
         }
 
-        /* 气泡 */
-        .level-bubble {
-            position: absolute;
+        /* 气泡/滚球 */
+        .bubble {
             width: 40px;
             height: 40px;
-            background: radial-gradient(circle at 30% 30%, #ffffff, #e0f7fa);
+            background: var(--text-color);
             border-radius: 50%;
-            box-shadow: 0 0 15px rgba(255,255,255,0.8);
-            transform: translate(0, 0); /* JS controls this */
-            transition: transform 0.1s cubic-bezier(0.1, 0.5, 0.5, 1);
-            z-index: 3;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+            transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1); /* 平滑跟随 */
         }
         
-        .level-bubble::after {
-            content: '';
-            position: absolute;
-            top: 20%;
-            left: 20%;
-            width: 25%;
-            height: 25%;
-            background: #fff;
-            border-radius: 50%;
-            filter: blur(1px);
-        }
-
-        /* 状态指示光晕 */
-        .level-wrapper.status-bad .level-bubble {
-            box-shadow: 0 0 20px var(--error-color);
-        }
-        .level-wrapper.status-good .level-bubble {
-            box-shadow: 0 0 25px #a5f3fc, 0 0 50px #fff;
-        }
-
-        /* 3. Timer Display */
+        /* --- 5. 计时器区域 --- */
         .timer-display {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 48px;
+            font-weight: 800;
             color: var(--text-color);
-            background: rgba(255, 255, 255, 0.3);
-            padding: 15px 30px;
-            border-radius: var(--radius-md);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: auto; /* Push controls to bottom */
-            letter-spacing: 2px;
-            font-variant-numeric: tabular-nums;
+            margin: 40px 0;
+            font-variant-numeric: tabular-nums; /* 等宽数字 */
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+        }
+        
+        /* 状态提示文字 */
+        .status-text {
+            font-size: 16px;
+            color: var(--text-color);
+            min-height: 24px;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
 
-        /* 4. Controls */
-        .controls {
-            width: 100%;
-            height: 100px;
+        /* --- 6. 按钮区域 (面包形，布丁弹力) --- */
+        .btn-group {
+            margin-top: auto; /* 推到底部 */
             display: flex;
-            justify-content: center;
-            align-items: center;
             gap: 20px;
+            width: 100%;
+            justify-content: center;
         }
 
         .btn {
-            background: var(--white);
+            background: var(--accent-color);
+            color: #FFF;
             border: none;
-            color: var(--text-color);
-            cursor: pointer;
-            box-shadow: 0 6px 0 #d1eef0, 0 10px 10px rgba(0,0,0,0.1);
-            transition: transform 0.1s, box-shadow 0.1s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Nunito', sans-serif;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: inherit;
             font-weight: 800;
-            font-size: 1.5rem;
+            /* Squircle 形状模拟 */
+            border-radius: 25px; 
+            cursor: pointer;
+            box-shadow: 
+                0 6px 0 rgba(0,0,0,0.1), /* 厚度阴影 */
+                0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 140px;
+            position: relative;
+            top: 0;
         }
 
         .btn:active {
-            transform: translateY(4px) scale(0.98);
-            box-shadow: 0 2px 0 #d1eef0, 0 4px 4px rgba(0,0,0,0.1);
+            transform: scale(0.92) translateY(4px); /* 按下变小且下移 */
+            box-shadow: 
+                0 2px 0 rgba(0,0,0,0.1), 
+                0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .btn-main {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%; /* Circle */
-        }
-
-        .btn-sub {
-            width: 60px;
-            height: 60px;
-            border-radius: 24px; /* Squircle */
-            font-size: 1.2rem;
-        }
-
-        /* Countdown Overlay inside Button */
-        .countdown-overlay {
-            color: var(--error-color);
-            font-size: 2rem;
-        }
-
-        /* Cute Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 50, 70, 0.2);
-            backdrop-filter: blur(2px);
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal {
-            background: var(--white);
-            padding: 25px;
-            width: 280px;
-            border-radius: 30px;
-            text-align: center;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-            transform: scale(0.8);
-            transition: transform 0.3s var(--bounce);
-        }
-
-        .modal-overlay.active .modal {
-            transform: scale(1);
-        }
-
-        .modal h3 {
-            margin: 0 0 10px 0;
-            color: var(--error-color);
-            font-size: 1.4rem;
-        }
-
-        .modal p {
+        .btn.secondary {
+            background: #FFF;
             color: var(--text-color);
-            font-weight: 600;
-            margin-bottom: 20px;
-            line-height: 1.5;
         }
-        
-        /* Icons (Simple CSS Shapes) */
-        .icon-play {
-            width: 0; height: 0;
-            border-top: 12px solid transparent;
-            border-bottom: 12px solid transparent;
-            border-left: 20px solid var(--text-color);
-            border-radius: 4px;
-            margin-left: 5px;
-        }
-        .icon-pause {
-            width: 20px; height: 24px;
-            border-left: 7px solid var(--text-color);
-            border-right: 7px solid var(--text-color);
-        }
-        .icon-reset {
-            width: 20px; height: 20px;
-            border: 3px solid var(--text-color);
-            border-radius: 50%;
-            border-top-color: transparent;
-            transform: rotate(45deg);
-        }
-        .icon-reset::after {
-            content: '';
+
+        .hidden { display: none !important; }
+
+        /* --- 弹窗提示 --- */
+        .toast {
             position: absolute;
-            top: -2px; left: 12px;
-            border: 5px solid transparent;
-            border-bottom-color: var(--text-color);
-            transform: rotate(15deg);
+            top: 20%;
+            background: var(--text-color);
+            color: var(--bg-color);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
         }
 
     </style>
 </head>
-<body>
+<body data-theme="spring">
 
+    <!-- 雪花层 -->
     <canvas id="snowCanvas"></canvas>
 
+    <!-- 主界面 -->
     <div class="app-container">
-        <!-- 1. Top: Degree -->
-        <div class="header-degree" id="degreeDisplay">0°</div>
+        
+        <div class="toast" id="toast">请保持水平~ 🌱</div>
 
-        <!-- 2. Middle: Bubble Level -->
-        <div class="level-wrapper" id="levelWrapper">
-            <div class="level-target"></div>
-            <div class="level-bubble" id="levelBubble"></div>
+        <div class="header-angle" id="angleDisplay">0°</div>
+
+        <div class="leveler-box" id="levelerBox">
+            <div class="target-ring"></div>
+            <div class="bubble" id="bubble"></div>
         </div>
 
-        <!-- 3. Timer -->
-        <div class="timer-display" id="timerDisplay">00 : 00 : 00</div>
+        <div class="status-text" id="statusText">准备开始专注了吗？</div>
+        <div class="timer-display" id="timer">00 : 00 : 00</div>
 
-        <!-- 4. Controls -->
-        <div class="controls" id="controls">
-            <!-- Initial State: Play Button -->
-            <button class="btn btn-main" id="btnMain">
-                <div class="icon-play"></div>
-            </button>
-        </div>
-    </div>
-
-    <!-- Alert Modal -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h3>哎呀！歪了～</h3>
-            <p>为了完美的冰面，<br>请把手机放平哦！</p>
-            <button class="btn btn-sub" style="margin:0 auto; width:100px; background:var(--container-color); color:white; box-shadow:none;" onclick="closeModal()">好哒</button>
+        <div class="btn-group">
+            <!-- 播放按钮 / 倒计时按钮 -->
+            <button class="btn" id="playBtn" onclick="handlePlay()">开始</button>
+            
+            <!-- 暂停时的按钮组 -->
+            <button class="btn secondary hidden" id="resetBtn" onclick="handleReset()">放弃</button>
+            <button class="btn hidden" id="resumeBtn" onclick="handlePlay()">继续</button>
         </div>
     </div>
 
     <script>
-        // --- Configuration & State ---
-        const CONFIG = {
-            maxTilt: 45, // Max visual tilt in degrees
-            threshold: 3, // Allowed error in degrees
-            bubbleRadius: 100, // Visual radius limit (px)
-            snowCount: 60
-        };
+        // --- 配置 ---
+        const ALLOWED_ANGLE = 3; // 允许误差度数
+        const SENSITIVITY = 4;   // 气泡灵敏度 (像素/度)
+        const MAX_MOVE = 110;    // 气泡最大移动半径(px)
 
-        const STATE = {
-            IDLE: 'idle',
-            COUNTDOWN: 'countdown',
-            RUNNING: 'running',
-            PAUSED: 'paused',
-            INTERRUPTED: 'interrupted' // Physically interrupted (tilted)
-        };
-
-        let currentState = STATE.IDLE;
-        let currentTilt = 0; // Avg of x/y tilt
-        let isLevel = true;
-        let timerTime = 0; // in seconds
+        // --- 状态变量 ---
+        let state = 'IDLE'; // IDLE, COUNTDOWN, RUNNING, PAUSED
+        let startTime = 0;
+        let elapsed = 0; // 已专注毫秒数
         let timerInterval = null;
         let countdownInterval = null;
-        let snowflakes = [];
-
-        // --- DOM Elements ---
-        const ui = {
-            degree: document.getElementById('degreeDisplay'),
-            bubble: document.getElementById('levelBubble'),
-            wrapper: document.getElementById('levelWrapper'),
-            timer: document.getElementById('timerDisplay'),
-            controls: document.getElementById('controls'),
-            btnMain: document.getElementById('btnMain'),
-            modal: document.getElementById('modalOverlay'),
-            canvas: document.getElementById('snowCanvas')
-        };
-
-        const ctx = ui.canvas.getContext('2d');
-        let canvasW, canvasH;
-
-        // --- Initialization ---
-        function init() {
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            initSnow();
-            renderLoop(); // Start Animation Loop
-
-            // Input Listeners
-            if(window.DeviceOrientationEvent) {
-                // We handle permission on first click
-            }
-            // PC Fallback
-            ui.wrapper.addEventListener('mousemove', handleMouseMove);
-            ui.wrapper.addEventListener('mouseleave', () => updateBubble(0, 0));
-
-            ui.btnMain.addEventListener('click', handleMainClick);
-        }
-
-        function resizeCanvas() {
-            canvasW = window.innerWidth;
-            canvasH = window.innerHeight;
-            ui.canvas.width = canvasW;
-            ui.canvas.height = canvasH;
-        }
-
-        // --- Logic: Spirit Level & Input ---
         
-        function handleMouseMove(e) {
-            // Simulate tilt based on mouse position relative to bubble center
-            const rect = ui.wrapper.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            
-            // Normalize -1 to 1
-            const dx = (e.clientX - cx) / (rect.width / 2);
-            const dy = (e.clientY - cy) / (rect.height / 2);
-            
-            updateBubble(dx * CONFIG.maxTilt, dy * CONFIG.maxTilt);
+        let currentBeta = 0; // X轴倾斜
+        let currentGamma = 0; // Y轴倾斜
+        let isDeviceLevel = true;
+
+        // --- DOM 元素 ---
+        const bubble = document.getElementById('bubble');
+        const levelerBox = document.getElementById('levelerBox');
+        const angleDisplay = document.getElementById('angleDisplay');
+        const timerDisplay = document.getElementById('timer');
+        const statusText = document.getElementById('statusText');
+        const toast = document.getElementById('toast');
+        
+        const playBtn = document.getElementById('playBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+
+        // --- 1. 传感器与输入逻辑 ---
+
+        // 处理设备方向 (Mobile)
+        function handleOrientation(event) {
+            // iOS 这里的 beta/gamma 可能是 undefined，需要检查
+            const beta = event.beta || 0;
+            const gamma = event.gamma || 0;
+            updateLeveler(beta, gamma);
         }
 
-        function handleDeviceOrientation(e) {
-            // Beta: front-to-back (-180 to 180), Gamma: left-to-right (-90 to 90)
-            let beta = e.beta || 0; 
-            let gamma = e.gamma || 0;
-
-            // Constrain to typical table usage
-            if (beta > 90) beta = 90;
-            if (beta < -90) beta = -90;
-
-            updateBubble(gamma, beta);
-        }
-
-        function updateBubble(tiltX, tiltY) {
-            // Calculate magnitude
-            const magnitude = Math.sqrt(tiltX*tiltX + tiltY*tiltY);
-            currentTilt = Math.round(magnitude);
-
-            // Update UI Text
-            ui.degree.innerText = `${currentTilt}°`;
-
-            // Update Bubble Position (Visual)
-            // Map degrees to pixels (limit to circle radius)
-            const r = CONFIG.bubbleRadius;
-            const dist = Math.min((magnitude / CONFIG.maxTilt) * r, r);
-            const angle = Math.atan2(tiltY, tiltX);
+        // 模拟设备方向 (PC Mouse)
+        document.addEventListener('mousemove', (e) => {
+            // 只有在非触屏设备模拟
+            if ('ontouchstart' in window) return;
             
-            const px = Math.cos(angle) * dist;
-            const py = Math.sin(angle) * dist;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            // 将鼠标位置映射到 -30 ~ 30 度
+            const gamma = (e.clientX - centerX) / centerX * 45; 
+            const beta = (e.clientY - centerY) / centerY * 45;
+            updateLeveler(beta, gamma);
+        });
 
-            ui.bubble.style.transform = `translate(${px}px, ${py}px)`;
+        // 核心：更新水平仪状态
+        function updateLeveler(beta, gamma) {
+            currentBeta = beta;
+            currentGamma = gamma;
 
-            // Check Level Status
-            const wasLevel = isLevel;
-            isLevel = currentTilt <= CONFIG.threshold;
+            // 1. 更新数值显示
+            const maxAngle = Math.max(Math.abs(beta), Math.abs(gamma));
+            angleDisplay.innerText = `${Math.round(maxAngle)}°`;
 
-            if(isLevel !== wasLevel) {
-                if(isLevel) {
-                    ui.wrapper.classList.remove('status-bad');
-                    ui.wrapper.classList.add('status-good');
-                    if(currentState === STATE.INTERRUPTED) resumeFromInterruption();
-                } else {
-                    ui.wrapper.classList.remove('status-good');
-                    ui.wrapper.classList.add('status-bad');
-                    if(currentState === STATE.RUNNING) triggerInterruption();
-                }
+            // 2. 移动气泡
+            let moveX = gamma * SENSITIVITY;
+            let moveY = beta * SENSITIVITY;
+            // 限制在圆内
+            const dist = Math.sqrt(moveX*moveX + moveY*moveY);
+            if (dist > MAX_MOVE) {
+                moveX = (moveX / dist) * MAX_MOVE;
+                moveY = (moveY / dist) * MAX_MOVE;
+            }
+            bubble.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+
+            // 3. 判定是否水平
+            const wasLevel = isDeviceLevel;
+            isDeviceLevel = (Math.abs(beta) < ALLOWED_ANGLE && Math.abs(gamma) < ALLOWED_ANGLE);
+
+            // 4. 视觉反馈 (柔和光效)
+            if (isDeviceLevel) {
+                levelerBox.classList.add('is-level');
+                levelerBox.classList.remove('not-level');
+            } else {
+                levelerBox.classList.remove('is-level');
+                levelerBox.classList.add('not-level');
+            }
+
+            // 5. 逻辑触发：如果在计时中，且不平
+            if (state === 'RUNNING' && !isDeviceLevel) {
+                pauseTimer("设备倾斜");
             }
         }
 
-        // --- Logic: Timer Flow ---
+        // --- 2. 流程控制逻辑 ---
 
-        function handleMainClick() {
-            // Permission for iOS 13+
+        // 点击开始/继续
+        function handlePlay() {
+            // iOS 权限请求 (必须在用户点击事件中触发)
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission()
                     .then(response => {
                         if (response === 'granted') {
-                            window.addEventListener('deviceorientation', handleDeviceOrientation);
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            startCountdown();
+                        } else {
+                            alert('需要传感器权限才能使用水平仪哦 🌱');
                         }
                     })
                     .catch(console.error);
             } else {
-                // Non-iOS or older devices
-                window.addEventListener('deviceorientation', handleDeviceOrientation);
-            }
-
-            if(currentState === STATE.IDLE || currentState === STATE.PAUSED) {
-                startCountdownSequence();
-            } else if (currentState === STATE.RUNNING) {
-                pauseTimer();
+                // Android 或 PC
+                window.addEventListener('deviceorientation', handleOrientation);
+                startCountdown();
             }
         }
 
-        function startCountdownSequence() {
-            // 1. Check Level First
-            if(!isLevel) {
-                showModal();
-                return;
-            }
-
-            currentState = STATE.COUNTDOWN;
-            let count = 5;
+        // 5秒倒计时
+        function startCountdown() {
+            state = 'COUNTDOWN';
+            playBtn.classList.add('hidden');
+            resumeBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');
             
-            // UI Change
-            ui.btnMain.innerHTML = `<span class="countdown-overlay">${count}</span>`;
-            ui.btnMain.disabled = true; // Prevent clicking during countdown
+            let count = 5;
+            playBtn.innerText = count; 
+            playBtn.classList.remove('hidden'); // 复用这个按钮显示数字
+            statusText.innerText = "放平手机...";
+
+            if (countdownInterval) clearInterval(countdownInterval);
 
             countdownInterval = setInterval(() => {
                 count--;
-                if(count > 0) {
-                    ui.btnMain.innerHTML = `<span class="countdown-overlay">${count}</span>`;
+                if (count > 0) {
+                    playBtn.innerText = count;
                 } else {
-                    // Start!
                     clearInterval(countdownInterval);
-                    
-                    // Final Check
-                    if(!isLevel) {
-                        resetToIdle();
-                        showModal();
-                    } else {
-                        startTimer();
-                    }
+                    checkStart();
                 }
             }, 1000);
         }
 
+        // 倒计时结束，检查是否可以开始
+        function checkStart() {
+            if (isDeviceLevel) {
+                startTimer();
+            } else {
+                // 不水平，暂停并提示
+                showToast();
+                pauseTimer("不水平，无法开始");
+            }
+        }
+
+        // 正式开始计时
         function startTimer() {
-            currentState = STATE.RUNNING;
-            ui.btnMain.disabled = false;
-            ui.btnMain.innerHTML = `<div class="icon-pause"></div>`;
+            state = 'RUNNING';
+            startTime = Date.now() - elapsed;
+            playBtn.classList.add('hidden');
+            statusText.innerText = "正在收集时光雪花...";
             
+            // 启动雪花生成
+            isSnowing = true; 
+
             timerInterval = setInterval(() => {
-                timerTime++;
-                updateTimerDisplay();
-            }, 1000);
+                elapsed = Date.now() - startTime;
+                updateTimerDisplay(elapsed);
+            }, 100);
         }
 
-        function pauseTimer() {
-            currentState = STATE.PAUSED;
+        // 暂停
+        function pauseTimer(reason) {
+            state = 'PAUSED';
             clearInterval(timerInterval);
-            renderControlPanel_Paused();
-        }
-
-        function resetTimer() {
-            clearInterval(timerInterval);
-            timerTime = 0;
-            updateTimerDisplay();
-            resetToIdle();
-        }
-
-        function resetToIdle() {
-            currentState = STATE.IDLE;
-            ui.controls.innerHTML = `
-                <button class="btn btn-main" id="btnMain">
-                    <div class="icon-play"></div>
-                </button>
-            `;
-            // Re-bind event since we replaced innerHTML
-            document.getElementById('btnMain').addEventListener('click', handleMainClick);
-        }
-
-        function renderControlPanel_Paused() {
-            ui.controls.innerHTML = `
-                <button class="btn btn-sub" id="btnReset">
-                    <div class="icon-reset"></div>
-                </button>
-                <button class="btn btn-main" id="btnResume">
-                    <div class="icon-play"></div>
-                </button>
-            `;
-            document.getElementById('btnResume').addEventListener('click', () => {
-                 // Restore controls structure then countdown
-                 ui.controls.innerHTML = `<button class="btn btn-main" id="btnMain"></button>`;
-                 ui.btnMain = document.getElementById('btnMain');
-                 ui.btnMain.addEventListener('click', handleMainClick);
-                 startCountdownSequence();
-            });
-            document.getElementById('btnReset').addEventListener('click', resetTimer);
-        }
-
-        // --- Logic: Interruption (The Magic) ---
-
-        function triggerInterruption() {
-            // Physical Tilt detected during run
-            clearInterval(timerInterval);
-            currentState = STATE.INTERRUPTED;
-            // UI update handled by state in loop
-            showModal();
-        }
-
-        function resumeFromInterruption() {
-            // Close modal automatically if they leveled out? 
-            // Better UX: Keep modal until they click "Okay" or auto-close?
-            // Let's auto-close modal but require a manual resume or auto-resume countdown?
-            // Design choice: Auto resume countdown if physically corrected.
             
-            closeModal();
-            // Go back to countdown to ensure stability
-            ui.controls.innerHTML = `<button class="btn btn-main" id="btnMain"></button>`;
-            ui.btnMain = document.getElementById('btnMain');
-            ui.btnMain.addEventListener('click', handleMainClick); // Rebind
-            startCountdownSequence(); 
+            isSnowing = false; // 停止生成，冻结位置
+            
+            statusText.innerText = reason === "设备倾斜" ? "哎呀，动了！" : "休息一下";
+            
+            playBtn.classList.add('hidden');
+            resumeBtn.classList.remove('hidden');
+            resetBtn.classList.remove('hidden');
+
+            if (reason === "设备倾斜") showToast();
         }
 
-        function updateTimerDisplay() {
-            const h = Math.floor(timerTime / 3600).toString().padStart(2, '0');
-            const m = Math.floor((timerTime % 3600) / 60).toString().padStart(2, '0');
-            const s = (timerTime % 60).toString().padStart(2, '0');
-            ui.timer.innerText = `${h} : ${m} : ${s}`;
+        // 重置
+        function handleReset() {
+            state = 'IDLE';
+            elapsed = 0;
+            updateTimerDisplay(0);
+            
+            playBtn.innerText = "开始";
+            playBtn.classList.remove('hidden');
+            resumeBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');
+            statusText.innerText = "准备开始专注了吗？";
+
+            // 清除雪花
+            snowflakes = [];
         }
 
-        // --- Visual: Snow System (Canvas) ---
+        function updateTimerDisplay(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            timerDisplay.innerText = `${h} : ${m} : ${s}`;
+        }
 
-        function initSnow() {
-            for(let i=0; i<CONFIG.snowCount; i++) {
-                snowflakes.push({
-                    x: Math.random() * canvasW,
-                    y: Math.random() * canvasH,
-                    r: Math.random() * 3 + 1, // Radius
-                    d: Math.random() * CONFIG.snowCount, // Density/Speed factor
-                    a: Math.random() * 0.5 + 0.3 // Opacity
-                });
+        function showToast() {
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // --- 3. 雪花粒子系统 (Canvas) ---
+        const canvas = document.getElementById('snowCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let snowflakes = [];
+        let isSnowing = false;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Snowflake {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = -10; // 从顶部生成
+                this.size = Math.random() * 5 + 2; // 2-7px
+                this.speed = Math.random() * 1 + 0.5;
+                this.drift = Math.random() * 1 - 0.5;
+                this.opacity = Math.random() * 0.5 + 0.3;
             }
-        }
 
-        function renderLoop() {
-            ctx.clearRect(0, 0, canvasW, canvasH);
-            
-            ctx.fillStyle = "#FFFFFF";
-
-            for(let i = 0; i < CONFIG.snowCount; i++) {
-                let p = snowflakes[i];
-                
-                ctx.globalAlpha = p.a;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
-                ctx.fill();
-
-                // CORE MAGIC: Only move if Running AND Level
-                if(currentState === STATE.RUNNING && isLevel) {
-                    p.y += Math.cos(p.d) + 1 + p.r / 2;
-                    p.x += Math.sin(p.d); // Slight sway
-
-                    // Reset if out of view
-                    if(p.y > canvasH) {
-                        snowflakes[i] = {
-                            x: Math.random() * canvasW,
-                            y: -10,
-                            r: p.r,
-                            d: p.d,
-                            a: p.a
-                        };
-                    }
+            update() {
+                // 只有在 Running 状态下位置才更新
+                if (state === 'RUNNING') {
+                    this.y += this.speed;
+                    this.x += this.drift;
+                } else if (state === 'IDLE') {
+                    // IDLE 状态下，剩余雪花飘走
+                    this.y += this.speed * 2; 
+                    this.opacity -= 0.02;
                 }
-                // If paused or tilted, position (x, y) remains static -> "Frozen Time" effect
+                // PAUSED 状态下，完全不动 (时间暂停魔法)
             }
 
-            requestAnimationFrame(renderLoop);
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                // 简单的高斯模糊模拟柔和感
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = "white";
+                ctx.fill();
+            }
         }
 
-        // --- Modal Logic ---
-        function showModal() {
-            ui.modal.classList.add('active');
-        }
-        function closeModal() {
-            ui.modal.classList.remove('active');
-            // If we closed modal while interrupted but level is good, state handling is done in updateBubble
-        }
+        function loop() {
+            ctx.clearRect(0, 0, width, height);
 
-        // Run
-        init();
+            // 生成新雪花 (仅在计时且 Running 时)
+            if (state === 'RUNNING' && Math.random() < 0.05) { // 调整生成密度
+                snowflakes.push(new Snowflake());
+            }
+
+            // 更新和绘制
+            for (let i = snowflakes.length - 1; i >= 0; i--) {
+                const p = snowflakes[i];
+                p.update();
+                p.draw();
+
+                // 移除出屏幕的或透明的
+                if (p.y > height + 10 || p.opacity <= 0) {
+                    snowflakes.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(loop);
+        }
+        loop();
+
+        // --- 4. 主题切换 (按空格) ---
+        const themes = ['spring', 'summer', 'autumn', 'winter', 'dark'];
+        let themeIndex = 0;
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                themeIndex = (themeIndex + 1) % themes.length;
+                document.body.setAttribute('data-theme', themes[themeIndex]);
+            }
+        });
 
     </script>
 </body>
