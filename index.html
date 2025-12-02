@@ -3,758 +3,749 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Focus Timer</title>
+    <title>Cozy Focus Timer</title>
     <!-- 引入圆润可爱的字体 -->
-    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 默认主题：春 */
+            /* 默认春季主题 */
             --bg-color: #FFB7B2;
-            --stripe-color: #FFDAC1;
-            --card-bg: #FFF5F0;
-            --accent-color: #E27D60;
+            --wood-light: #FFDAC1;
+            --wood-dark: #E27D60;
+            --ui-bg: #FFF5F0;
             --text-color: #6D4C41;
-            --btn-text: #FFFFFF;
-            --shadow: rgba(0, 0, 0, 0.1);
-            --error-color: #FF6B6B;
-            --success-color: #95D5B2;
+            --accent-color: #FF9AA2;
+            --btn-shadow: #D86C55;
+            --particle-color: #FFB7B2;
+        }
+
+        /* 主题定义类 */
+        body.summer {
+            --bg-color: #95D5B2;
+            --wood-light: #B7E4C7;
+            --wood-dark: #40916C;
+            --ui-bg: #F0FFF4;
+            --text-color: #1B4332;
+            --accent-color: #74C69D;
+            --btn-shadow: #2D6A4F;
+        }
+        body.autumn {
+            --bg-color: #E29578;
+            --wood-light: #F6BD60;
+            --wood-dark: #A65D48;
+            --ui-bg: #FFF8E1;
+            --text-color: #5D4037;
+            --accent-color: #F4A261;
+            --btn-shadow: #8D4E38;
+        }
+        body.winter {
+            --bg-color: #98C1D9;
+            --wood-light: #E0FBFC;
+            --wood-dark: #3D5A80;
+            --ui-bg: #F0F8FF;
+            --text-color: #293241;
+            --accent-color: #98C1D9;
+            --btn-shadow: #2B4566;
+        }
+        body.dark {
+            --bg-color: #293241;
+            --wood-light: #3D5A80;
+            --wood-dark: #1F2633;
+            --ui-bg: #1B263B;
+            --text-color: #E0FBFC;
+            --accent-color: #415A77;
+            --btn-shadow: #0D131E;
         }
 
         * {
             box-sizing: border-box;
             user-select: none;
+            -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
-        body, html {
+        body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
-            font-family: 'Varela Round', 'Nunito', sans-serif;
-            color: var(--text-color);
-            transition: background-color 0.5s, color 0.5s;
-        }
-
-        /* 背景层级 */
-        #app {
-            position: relative;
-            width: 100%;
-            height: 100%;
             background-color: var(--bg-color);
-            z-index: 1;
-        }
-
-        /* 斜条纹背景 */
-        .bg-stripes {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 40px,
-                rgba(255, 255, 255, 0.25) 40px,
-                rgba(255, 255, 255, 0.25) 80px
-            );
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        /* 粒子画布层 */
-        #particle-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        /* 主容器 (Card) */
-        .container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 450px;
-            height: 80vh;
-            max-height: 800px;
-            background-color: var(--card-bg);
-            border-radius: 40px;
-            box-shadow: 0 10px 30px var(--shadow);
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px;
+            font-family: 'Nunito', sans-serif;
             transition: background-color 0.5s;
-        }
-
-        /* 上部：倾斜度 */
-        .angle-display {
-            font-size: 2rem;
-            margin-top: 10px;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-
-        /* 中上部：水平仪 */
-        .level-wrapper {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 30px 0;
-        }
-
-        .level-outer {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 8px solid var(--text-color);
-            position: relative;
-            background: rgba(255, 255, 255, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        /* 木纹背景层 */
+        .wood-layer {
+            position: absolute;
+            top: 2vmin;
+            bottom: 2vmin;
+            left: 2vmin;
+            right: 2vmin;
+            background-color: var(--wood-light);
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px);
+            border-radius: 40px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.1);
+            z-index: 1;
+            transition: background-color 0.5s;
+        }
+
+        /* UI 容器 (Squircle) */
+        .ui-container {
+            position: absolute;
+            top: 4vmin;
+            bottom: 4vmin;
+            left: 4vmin;
+            right: 4vmin;
+            background-color: var(--ui-bg);
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: background-color 0.5s;
+        }
+
+        /* 画布层 (粒子) */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* 上部：角度显示 */
+        .angle-display {
+            font-family: 'Fredoka One', cursive;
+            font-size: 6vmin;
+            color: var(--text-color);
+            margin-top: 2vh;
+            min-height: 1.5em;
+        }
+
+        /* 中上部：水平仪 */
+        .leveler-container {
+            position: relative;
+            width: 35vmin;
+            height: 35vmin;
+            margin: 2vh 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .leveler-ring {
+            width: 100%;
+            height: 100%;
+            border: 6px solid #DDD;
+            border-radius: 50%;
+            position: absolute;
             transition: border-color 0.3s;
         }
 
-        .level-error-zone {
-            position: absolute;
-            width: 60px;
-            height: 60px;
+        .leveler-error-zone {
+            width: 25%; /* 对应大约3-5度的误差范围 */
+            height: 25%;
+            border: 2px dashed #ff6b6b;
             border-radius: 50%;
-            border: 2px dashed var(--error-color);
-            opacity: 1;
+            position: absolute;
+            opacity: 0;
             transition: opacity 0.3s;
         }
 
-        /* 准星 (Bubble) */
-        .level-bubble {
-            width: 40px;
-            height: 40px;
+        .leveler-bubble {
+            width: 20px;
+            height: 20px;
+            background-color: #ff6b6b;
             border-radius: 50%;
-            background-color: var(--error-color);
             position: absolute;
-            transform: translate(-50%, -50%);
-            left: 50%;
-            top: 50%;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            cursor: grab;
-            transition: background-color 0.3s, border 0.3s;
-        }
-
-        .level-bubble:active {
-            cursor: grabbing;
+            transform: translate(0, 0);
+            transition: background-color 0.3s, width 0.3s, height 0.3s, border 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         /* 水平状态样式 */
-        .is-level .level-outer {
-            border-color: var(--success-color);
-            box-shadow: 0 0 0 8px inset rgba(149, 213, 178, 0.2);
+        .is-level .leveler-ring {
+            border-color: #4CAF50;
         }
-        
-        .is-level .level-bubble {
+        .is-level .leveler-bubble {
             background-color: transparent;
-            border: 4px solid var(--success-color);
-            width: 50px;
-            height: 50px;
+            border: 4px solid #4CAF50;
+            width: 24px;
+            height: 24px;
+        }
+        .not-level .leveler-error-zone {
+            opacity: 0.6;
         }
 
-        .is-level .level-error-zone {
-            opacity: 0;
+        /* 十字准星装饰 */
+        .crosshair {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .crosshair::before, .crosshair::after {
+            content: '';
+            position: absolute;
+            background-color: rgba(0,0,0,0.1);
+        }
+        .crosshair::before {
+            top: 50%; left: 10%; right: 10%; height: 2px;
+        }
+        .crosshair::after {
+            left: 50%; top: 10%; bottom: 10%; width: 2px;
         }
 
         /* 中下部：计时器 */
         .timer-display {
-            font-size: 3rem;
-            font-weight: bold;
-            font-variant-numeric: tabular-nums;
-            margin-bottom: auto;
+            font-family: 'Fredoka One', cursive;
+            font-size: 10vmin;
             color: var(--text-color);
+            margin: 2vh 0;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
         }
 
         /* 下部：按钮区 */
         .controls {
-            width: 100%;
+            margin-top: auto;
+            margin-bottom: 4vh;
             display: flex;
-            justify-content: center;
             gap: 20px;
-            min-height: 80px;
         }
 
-        /* 面包按钮 (Squircle) */
         .btn {
             background-color: var(--accent-color);
-            color: var(--btn-text);
+            color: #FFF;
             border: none;
-            font-family: inherit;
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 15px 40px;
-            /* Squircle-ish shape */
-            border-radius: 20px; 
+            font-family: 'Fredoka One', cursive;
+            font-size: 24px;
+            width: 16vmin;
+            height: 16vmin;
+            min-width: 80px;
+            min-height: 80px;
+            border-radius: 35%; /* Squircle / Loaf shape */
             cursor: pointer;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
-            transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.1s;
-            outline: none;
-            min-width: 120px;
+            box-shadow: 0 6px 0 var(--btn-shadow);
+            transition: transform 0.1s, box-shadow 0.1s;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
 
         .btn:active {
-            transform: translateY(4px) scale(0.98);
-            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+            transform: translateY(6px) scale(0.95);
+            box-shadow: 0 0 0 var(--btn-shadow);
         }
-
-        .btn.hidden {
-            display: none;
+        
+        /* 倒计时状态下的按钮 */
+        .btn.counting {
+            font-size: 32px;
+            pointer-events: none; /* 禁止点击 */
+            filter: brightness(0.9);
         }
 
         /* 图标 SVG */
         .icon {
-            width: 24px;
-            height: 24px;
+            width: 60%;
+            height: 60%;
             fill: currentColor;
         }
 
         /* 弹窗提示 */
-        #toast {
-            position: fixed;
+        .toast {
+            position: absolute;
             bottom: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
+            background-color: rgba(255, 107, 107, 0.9);
             color: white;
             padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
             opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
             pointer-events: none;
-            transition: opacity 0.3s;
             z-index: 100;
         }
-
-        #toast.show {
+        .toast.show {
             opacity: 1;
+            transform: translateY(0);
         }
 
-        /* 适配 Dark Mode 的微调 */
-        body.dark-mode .level-outer {
-            background: rgba(255, 255, 255, 0.1);
+        /* 隐藏元素 */
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
-<body>
+<body class="spring"> <!-- 默认春季 -->
 
-<div id="app">
-    <div class="bg-stripes"></div>
-    <canvas id="particle-canvas"></canvas>
+    <!-- Canvas 用于粒子 -->
+    <canvas id="particleCanvas"></canvas>
 
-    <div class="container">
-        <!-- 角度显示 -->
-        <div class="angle-display" id="angleText">0°</div>
+    <!-- 木纹装饰层 -->
+    <div class="wood-layer"></div>
+
+    <!-- UI 内容层 -->
+    <div class="ui-container">
+        <!-- 角度 -->
+        <div class="angle-display" id="angleText">【0°】</div>
 
         <!-- 水平仪 -->
-        <div class="level-wrapper" id="levelWrapper">
-            <div class="level-outer" id="levelOuter">
-                <div class="level-error-zone"></div>
-                <div class="level-bubble" id="levelBubble"></div>
-            </div>
+        <div class="leveler-container" id="leveler">
+            <div class="leveler-ring"></div>
+            <div class="crosshair"></div>
+            <div class="leveler-error-zone"></div>
+            <div class="leveler-bubble" id="bubble"></div>
         </div>
 
-        <!-- 计时区 -->
-        <div class="timer-display" id="timerText">00 : 00 : 00</div>
+        <!-- 计时器 -->
+        <div class="timer-display" id="timer">00 : 00 : 00</div>
 
         <!-- 按钮区 -->
         <div class="controls">
             <!-- 播放/倒计时/暂停按钮 -->
             <button class="btn" id="mainBtn">
-                <svg class="icon" viewBox="0 0 24 24" id="playIcon">
-                    <path d="M8 5v14l11-7z"/>
-                </svg>
-                <span id="btnText" style="display:none"></span>
-                <svg class="icon" viewBox="0 0 24 24" id="pauseIcon" style="display:none">
-                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                </svg>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
             </button>
-            
-            <!-- 重新开始按钮 -->
-            <button class="btn hidden" id="restartBtn">
-                <svg class="icon" viewBox="0 0 24 24">
-                    <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
-                </svg>
+            <!-- 重新开始按钮 (默认隐藏) -->
+            <button class="btn hidden" id="resetBtn">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
             </button>
         </div>
     </div>
-</div>
 
-<div id="toast">请保持设备水平</div>
+    <!-- 提示框 -->
+    <div class="toast" id="toast">请保持设备水平</div>
 
-<script>
-    /**
-     * 配置与状态
-     */
-    const themes = [
-        // 春
-        { name: 'spring', bg: '#FFB7B2', stripe: '#FFDAC1', card: '#FFF5F0', accent: '#E27D60', text: '#6D4C41', particle: 'petal' },
-        // 夏
-        { name: 'summer', bg: '#95D5B2', stripe: '#B7E4C7', card: '#F0FFF4', accent: '#40916C', text: '#1B4332', particle: 'bubble' },
-        // 秋
-        { name: 'autumn', bg: '#E29578', stripe: '#F6BD60', card: '#FFF8E1', accent: '#A65D48', text: '#5D4037', particle: 'leaf' },
-        // 冬
-        { name: 'winter', bg: '#98C1D9', stripe: '#E0FBFC', card: '#F0FDFF', accent: '#3D5A80', text: '#293241', particle: 'snow' },
-        // 暗黑
-        { name: 'dark', bg: '#293241', stripe: 'rgba(255,255,255,0.05)', card: '#3D5A80', accent: '#E0FBFC', text: '#E0FBFC', particle: 'snow', isDark: true }
-    ];
+    <script>
+        /**
+         * 状态机与配置
+         */
+        const STATE = {
+            IDLE: 'IDLE',
+            COUNTDOWN: 'COUNTDOWN',
+            RUNNING: 'RUNNING',
+            PAUSED: 'PAUSED'
+        };
 
-    let currentThemeIndex = 0;
-    
-    // 状态机: 'idle' | 'countdown' | 'running' | 'paused'
-    let appState = 'idle';
-    let countdownValue = 5;
-    let timerInterval = null;
-    let totalSeconds = 0;
-    
-    // 设备/模拟数据
-    let currentAngle = 0;
-    let isLevel = true;
-    const LEVEL_THRESHOLD = 3;
-    const LEVEL_RADIUS = 100; // 水平仪半径
-    
-    // DOM 元素
-    const dom = {
-        app: document.getElementById('app'),
-        angleText: document.getElementById('angleText'),
-        levelOuter: document.getElementById('levelOuter'),
-        levelBubble: document.getElementById('levelBubble'),
-        timerText: document.getElementById('timerText'),
-        mainBtn: document.getElementById('mainBtn'),
-        playIcon: document.getElementById('playIcon'),
-        pauseIcon: document.getElementById('pauseIcon'),
-        btnText: document.getElementById('btnText'),
-        restartBtn: document.getElementById('restartBtn'),
-        toast: document.getElementById('toast'),
-        canvas: document.getElementById('particle-canvas')
-    };
-
-    /**
-     * 主题切换逻辑
-     */
-    function applyTheme(index) {
-        const t = themes[index];
-        const r = document.documentElement.style;
-        r.setProperty('--bg-color', t.bg);
-        r.setProperty('--stripe-color', t.stripe);
-        r.setProperty('--card-bg', t.card);
-        r.setProperty('--accent-color', t.accent);
-        r.setProperty('--text-color', t.text);
+        const THEMES = ['spring', 'summer', 'autumn', 'winter', 'dark'];
         
-        if(t.isDark) {
-            document.body.classList.add('dark-mode');
-            r.setProperty('--btn-text', '#293241');
-        } else {
-            document.body.classList.remove('dark-mode');
-            r.setProperty('--btn-text', '#FFFFFF');
+        let currentState = STATE.IDLE;
+        let currentThemeIndex = 0;
+        let timerInterval = null;
+        let startTime = 0;
+        let elapsedBeforePause = 0; // 毫秒
+        
+        // 水平仪配置
+        const MAX_TILT = 45; // 最大显示倾斜度
+        const TOLERANCE = 3; // 容差度数
+        let currentBeta = 0; // X轴倾斜 (前后)
+        let currentGamma = 0; // Y轴倾斜 (左右)
+        let isLevel = true;
+
+        // DOM 元素
+        const dom = {
+            body: document.body,
+            angle: document.getElementById('angleText'),
+            leveler: document.getElementById('leveler'),
+            bubble: document.getElementById('bubble'),
+            timer: document.getElementById('timer'),
+            mainBtn: document.getElementById('mainBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            toast: document.getElementById('toast'),
+            canvas: document.getElementById('particleCanvas')
+        };
+
+        // 图标 SVG 字符串
+        const ICONS = {
+            play: '<svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+            pause: '<svg class="icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>',
+            reset: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>'
+        };
+
+        /**
+         * 粒子系统
+         */
+        const ctx = dom.canvas.getContext('2d');
+        let particles = [];
+        let animationId;
+        
+        // 调整 Canvas 尺寸
+        function resizeCanvas() {
+            dom.canvas.width = window.innerWidth;
+            dom.canvas.height = window.innerHeight;
         }
-    }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-    // 初始主题
-    applyTheme(0);
-
-    // 空格键切换主题
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
-            applyTheme(currentThemeIndex);
-            // 重置粒子颜色或类型
-            particles.forEach(p => initParticleStyle(p));
-        }
-    });
-
-    /**
-     * 水平仪与陀螺仪逻辑
-     */
-    let simX = 0, simY = 0; // 电脑端模拟坐标
-    let isDragging = false;
-
-    // 统一处理角度更新
-    function updateLevelDisplay(x, y) {
-        // 计算距离中心的距离
-        const dist = Math.sqrt(x*x + y*y);
-        // 最大范围限制
-        const maxDist = 70; 
-        
-        // 映射到角度 (模拟: 70px偏移 = 45度)
-        let angle = Math.round((dist / maxDist) * 45);
-        currentAngle = angle;
-        
-        // 限制圆内移动
-        let visualDist = Math.min(dist, maxDist);
-        let angleRad = Math.atan2(y, x);
-        let cssX = Math.cos(angleRad) * visualDist;
-        let cssY = Math.sin(angleRad) * visualDist;
-
-        // UI 更新
-        dom.levelBubble.style.left = `calc(50% + ${cssX}px)`;
-        dom.levelBubble.style.top = `calc(50% + ${cssY}px)`;
-        dom.angleText.textContent = `${angle}°`;
-
-        // 状态检查
-        const prevLevel = isLevel;
-        isLevel = angle <= LEVEL_THRESHOLD;
-
-        if (isLevel) {
-            dom.levelOuter.parentElement.classList.add('is-level');
-        } else {
-            dom.levelOuter.parentElement.classList.remove('is-level');
-        }
-
-        // 如果在倒计时结束那一刻触发
-        if (appState === 'running' && !isLevel) {
-            pauseGame("请保持设备水平");
-        }
-    }
-
-    // PC 鼠标模拟
-    dom.levelBubble.addEventListener('mousedown', () => { 
-        if(appState === 'running' || appState === 'countdown') return; // 运行时禁止手动干扰(逻辑上PC测试用)
-        isDragging = true; 
-    });
-    window.addEventListener('mouseup', () => isDragging = false);
-    window.addEventListener('mousemove', (e) => {
-        // 仅在电脑端非触屏有效，或者作为测试
-        if (!isDragging) return;
-        
-        const rect = dom.levelOuter.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        
-        simX = e.clientX - centerX;
-        simY = e.clientY - centerY;
-        
-        updateLevelDisplay(simX, simY);
-    });
-
-    // Mobile DeviceOrientation
-    function handleOrientation(event) {
-        // Beta: 前后倾斜 (-180, 180), Gamma: 左右倾斜 (-90, 90)
-        let beta = event.beta || 0; 
-        let gamma = event.gamma || 0;
-
-        // 简单的平面投影模拟
-        // 限制在 ±45 度范围内映射 visuals
-        const scaleFactor = 2; // 灵敏度
-        let x = gamma * scaleFactor;
-        let y = beta * scaleFactor;
-
-        updateLevelDisplay(x, y);
-    }
-
-    // 请求权限 (iOS 13+)
-    function requestOrientationPermission() {
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            DeviceOrientationEvent.requestPermission()
-                .then(response => {
-                    if (response === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                    }
-                })
-                .catch(console.error);
-        } else {
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
-    }
-
-    /**
-     * 计时器逻辑
-     */
-    
-    function formatTime(sec) {
-        const h = Math.floor(sec / 3600).toString().padStart(2, '0');
-        const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
-        const s = (sec % 60).toString().padStart(2, '0');
-        return `${h} : ${m} : ${s}`;
-    }
-
-    function startCountdown() {
-        requestOrientationPermission(); // 尝试获取权限
-        appState = 'countdown';
-        countdownValue = 5;
-        
-        dom.playIcon.style.display = 'none';
-        dom.pauseIcon.style.display = 'none';
-        dom.btnText.style.display = 'inline';
-        dom.btnText.textContent = countdownValue;
-        
-        dom.restartBtn.classList.add('hidden');
-        dom.mainBtn.disabled = true; // 倒计时期间不可点
-        
-        let countInterval = setInterval(() => {
-            countdownValue--;
-            if (countdownValue > 0) {
-                dom.btnText.textContent = countdownValue;
-            } else {
-                clearInterval(countInterval);
-                checkStart();
+        class Particle {
+            constructor() {
+                this.reset(true);
             }
-        }, 1000);
-    }
 
-    function checkStart() {
-        dom.mainBtn.disabled = false;
-        
-        if (isLevel) {
-            // 开始计时
-            appState = 'running';
-            dom.btnText.style.display = 'none';
-            dom.pauseIcon.style.display = 'inline';
-            
-            startTimer();
-            startParticles();
-        } else {
-            // 失败
-            appState = 'idle';
-            dom.btnText.style.display = 'none';
-            dom.playIcon.style.display = 'inline';
-            showToast("请保持设备水平");
-        }
-    }
+            reset(top = false) {
+                this.x = Math.random() * dom.canvas.width;
+                this.y = top ? Math.random() * dom.canvas.height : -20;
+                this.size = (Math.random() * 0.5 + 0.5) * (dom.body.classList.contains('dark') ? 4 : 10);
+                // 1:2:1 比例生成大小
+                const sizeRoll = Math.random();
+                if(sizeRoll < 0.25) this.size *= 0.6; // 小
+                else if(sizeRoll > 0.75) this.size *= 1.4; // 大
+                
+                this.speedY = Math.random() * 1 + 1;
+                this.speedX = Math.random() * 2 - 1;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 2 - 1;
+                this.opacity = Math.random() * 0.5 + 0.5;
+                this.oscillation = Math.random() * 0.05;
+            }
 
-    function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            totalSeconds++;
-            dom.timerText.textContent = formatTime(totalSeconds);
-        }, 1000);
-    }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.globalAlpha = this.opacity;
+                
+                const theme = THEMES[currentThemeIndex];
+                
+                if (theme === 'spring') {
+                    // 花瓣
+                    ctx.fillStyle = '#FFB7B2';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (theme === 'summer') {
+                    // 泡泡
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size * 0.8, 0, Math.PI * 2);
+                    ctx.stroke();
+                    // 高光
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.beginPath();
+                    ctx.arc(this.size * -0.3, this.size * -0.3, this.size * 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (theme === 'autumn') {
+                    // 枫叶 (菱形模拟)
+                    ctx.fillStyle = '#E76F51';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.size);
+                    ctx.lineTo(this.size * 0.8, 0);
+                    ctx.lineTo(0, this.size);
+                    ctx.lineTo(-this.size * 0.8, 0);
+                    ctx.fill();
+                } else if (theme === 'winter') {
+                    // 雪花
+                    ctx.fillStyle = '#E0FBFC';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (theme === 'dark') {
+                    // 萤火虫
+                    ctx.fillStyle = '#F4D35E';
+                    ctx.shadowColor = '#F4D35E';
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
 
-    function pauseGame(reason = "") {
-        if (appState !== 'running') return;
-        
-        appState = 'paused';
-        clearInterval(timerInterval);
-        
-        // UI 变更
-        dom.pauseIcon.style.display = 'none';
-        dom.playIcon.style.display = 'inline';
-        dom.restartBtn.classList.remove('hidden');
-        
-        // 粒子冻结
-        freezeParticles();
-        
-        if (reason) showToast(reason);
-    }
+                ctx.restore();
+            }
 
-    function resetGame() {
-        appState = 'idle';
-        clearInterval(timerInterval);
-        totalSeconds = 0;
-        dom.timerText.textContent = formatTime(0);
-        
-        dom.restartBtn.classList.add('hidden');
-        dom.playIcon.style.display = 'inline';
-        dom.btnText.style.display = 'none';
-        
-        clearParticles();
-    }
+            update() {
+                // 如果是暂停状态，不更新位置（时间停止魔法）
+                if (currentState === STATE.PAUSED || currentState === STATE.IDLE) return;
 
-    // 事件监听
-    dom.mainBtn.addEventListener('click', () => {
-        if (appState === 'idle' || appState === 'paused') {
-            startCountdown();
-        } else if (appState === 'running') {
-            pauseGame();
-        }
-    });
+                this.y += this.speedY;
+                this.x += Math.sin(this.y * this.oscillation) + this.speedX * 0.2;
+                this.rotation += this.rotationSpeed;
 
-    dom.restartBtn.addEventListener('click', resetGame);
-
-    // 息屏检测
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden && appState === 'running') {
-            pauseGame("检测到离开");
-        }
-    });
-
-    function showToast(msg) {
-        dom.toast.textContent = msg;
-        dom.toast.classList.add('show');
-        setTimeout(() => {
-            dom.toast.classList.remove('show');
-        }, 2000);
-    }
-
-    /**
-     * 粒子系统 (Canvas)
-     */
-    const ctx = dom.canvas.getContext('2d');
-    let particles = [];
-    let particleInterval = null;
-    let isParticleGenerating = false;
-    let particlesFrozen = false;
-
-    // 响应式画布
-    function resizeCanvas() {
-        dom.canvas.width = window.innerWidth;
-        dom.canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    class Particle {
-        constructor() {
-            this.reset();
-            this.y = Math.random() * -dom.canvas.height; // 初始随机分布在屏幕上方
-        }
-
-        reset() {
-            this.x = Math.random() * dom.canvas.width;
-            this.y = -20;
-            this.sizeBase = (Math.random() < 0.25 ? 0.5 : (Math.random() < 0.75 ? 1 : 0.5)) * 10; // 1:2:1 ratio approx
-            this.size = this.sizeBase; 
-            this.speed = (Math.random() * 1 + 1) * (dom.canvas.height / 800);
-            this.sway = Math.random() * 2;
-            this.swaySpeed = Math.random() * 0.05;
-            this.angle = 0;
-            this.rotation = Math.random() * 360;
-            this.rotationSpeed = (Math.random() - 0.5) * 2;
-            
-            initParticleStyle(this);
-        }
-
-        update() {
-            if (particlesFrozen) return;
-
-            this.y += this.speed;
-            this.angle += this.swaySpeed;
-            this.x += Math.sin(this.angle) * this.sway;
-            this.rotation += this.rotationSpeed;
-
-            // 移除出屏幕的粒子 (如果是 Running 状态则重置，否则移除)
-            if (this.y > dom.canvas.height + 20) {
-                if (isParticleGenerating) {
-                    this.reset();
-                } else {
-                    this.active = false; // 标记移除
+                if (this.y > dom.canvas.height + 20) {
+                    if (currentState === STATE.RUNNING) {
+                         this.reset();
+                    }
                 }
             }
         }
 
-        draw() {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation * Math.PI / 180);
-            
-            const theme = themes[currentThemeIndex];
-            ctx.fillStyle = this.color || '#FFF';
-            ctx.strokeStyle = this.color || '#FFF';
-            
-            if (this.type === 'petal') {
-                // 花瓣 (Spring)
-                ctx.beginPath();
-                ctx.ellipse(0, 0, this.size, this.size / 1.8, 0, 0, 2 * Math.PI);
-                ctx.fill();
-            } else if (this.type === 'bubble') {
-                // 泡泡 (Summer)
-                ctx.beginPath();
-                ctx.arc(0, 0, this.size, 0, 2 * Math.PI);
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                // 高光
-                ctx.beginPath();
-                ctx.arc(-this.size*0.3, -this.size*0.3, this.size*0.2, 0, 2 * Math.PI);
-                ctx.fill();
-            } else if (this.type === 'leaf') {
-                // 枫叶 (Autumn) - 简化为菱形/风筝形
-                ctx.beginPath();
-                ctx.moveTo(0, -this.size);
-                ctx.lineTo(this.size * 0.6, 0);
-                ctx.lineTo(0, this.size);
-                ctx.lineTo(-this.size * 0.6, 0);
-                ctx.closePath();
-                ctx.fill();
-            } else {
-                // 雪花 (Winter / Dark)
-                ctx.beginPath();
-                ctx.arc(0, 0, this.size * 0.6, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-
-            ctx.restore();
-        }
-    }
-
-    function initParticleStyle(p) {
-        const t = themes[currentThemeIndex];
-        p.type = t.particle;
-        
-        // 颜色微调
-        if (t.name === 'spring') p.color = '#FFB7B2'; // Pink
-        else if (t.name === 'summer') p.color = 'rgba(255, 255, 255, 0.6)'; // White trans
-        else if (t.name === 'autumn') p.color = Math.random() > 0.5 ? '#E29578' : '#F6BD60';
-        else p.color = '#FFFFFF';
-        
-        p.active = true;
-    }
-
-    function startParticles() {
-        isParticleGenerating = true;
-        particlesFrozen = false;
-        
-        // 初始生成一批
-        if (particles.length === 0) {
-            for(let i=0; i<30; i++) {
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 50; i++) {
                 particles.push(new Particle());
             }
         }
-        animate();
-    }
 
-    function freezeParticles() {
-        isParticleGenerating = false;
-        particlesFrozen = true; 
-        // 依然继续 animate 循环，但 update 逻辑内会跳过位置更新，只 draw
-    }
-
-    function clearParticles() {
-        isParticleGenerating = false;
-        particlesFrozen = false; 
-        // 这里的逻辑是让它们飘走消失，不再重置位置
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
+        function animateParticles() {
+            ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
+            
+            // 如果是 IDLE 状态，且需要清空粒子（飘出屏幕）
+            if (currentState === STATE.IDLE && particles.length > 0) {
+                 let activeParticles = 0;
+                 particles.forEach(p => {
+                     p.y += p.speedY * 2; // 加速落下
+                     p.rotation += p.rotationSpeed;
+                     p.draw();
+                     if (p.y < dom.canvas.height + 50) activeParticles++;
+                 });
+                 if (activeParticles === 0) particles = []; // 清空
+            } else {
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+            }
+            
+            requestAnimationFrame(animateParticles);
+        }
         
-        // 过滤掉不活跃的粒子
-        particles = particles.filter(p => p.active);
+        // 启动渲染循环
+        initParticles();
+        animateParticles();
 
-        // 如果在生成状态且粒子少，补充粒子
-        if (isParticleGenerating && particles.length < 50) {
-             if (Math.random() < 0.1) particles.push(new Particle());
+        /**
+         * 逻辑控制
+         */
+
+        // 格式化时间
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            return [h, m, s].map(v => v.toString().padStart(2, '0')).join(' : ');
         }
 
-        particles.forEach(p => {
-            p.update();
-            p.draw();
+        // 更新 UI (角度与水平仪)
+        function updateOrientationUI() {
+            const maxTiltAngle = Math.max(Math.abs(currentBeta), Math.abs(currentGamma));
+            dom.angle.innerText = `【${Math.round(maxTiltAngle)}°】`;
+
+            // 移动气泡
+            // 将角度映射到像素移动。假设 45度 = 容器半径
+            const rect = dom.leveler.getBoundingClientRect();
+            const radius = rect.width / 2;
+            
+            // 限制气泡在圆环内
+            let moveX = (currentGamma / MAX_TILT) * radius;
+            let moveY = (currentBeta / MAX_TILT) * radius;
+            
+            const distance = Math.sqrt(moveX*moveX + moveY*moveY);
+            if (distance > radius - 15) {
+                const angle = Math.atan2(moveY, moveX);
+                moveX = Math.cos(angle) * (radius - 15);
+                moveY = Math.sin(angle) * (radius - 15);
+            }
+
+            dom.bubble.style.transform = `translate(${moveX}px, ${moveY}px)`;
+
+            // 判断水平
+            const wasLevel = isLevel;
+            isLevel = maxTiltAngle <= TOLERANCE;
+
+            if (isLevel) {
+                dom.leveler.classList.add('is-level');
+                dom.leveler.classList.remove('not-level');
+                if (dom.toast.classList.contains('show')) dom.toast.classList.remove('show');
+            } else {
+                dom.leveler.classList.remove('is-level');
+                dom.leveler.classList.add('not-level');
+            }
+
+            // 状态触发逻辑
+            if (currentState === STATE.RUNNING && !isLevel) {
+                pauseTimer("不平");
+            } else if (currentState === STATE.COUNTDOWN && !isLevel && countdownVal <= 0) {
+                 // 倒计时结束那刻不平
+                 showToast();
+            }
+        }
+
+        function showToast() {
+            dom.toast.classList.add('show');
+            setTimeout(() => dom.toast.classList.remove('show'), 2000);
+        }
+
+        // 计时器主逻辑
+        function startTimer() {
+            currentState = STATE.RUNNING;
+            startTime = Date.now() - elapsedBeforePause;
+            
+            // UI 更新
+            dom.mainBtn.innerHTML = ICONS.pause;
+            dom.resetBtn.classList.add('hidden');
+            
+            // 粒子生成逻辑：如果是重新开始，重置粒子位置在顶部；如果是继续，位置不变
+            if (elapsedBeforePause === 0) {
+                initParticles();
+                particles.forEach(p => p.y = -20 - Math.random() * 200); // 从顶部生成
+            }
+            
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                const elapsed = now - startTime;
+                dom.timer.innerText = formatTime(elapsed);
+            }, 100);
+        }
+
+        function pauseTimer(reason) {
+            if (currentState !== STATE.RUNNING) return;
+            
+            currentState = STATE.PAUSED;
+            clearInterval(timerInterval);
+            elapsedBeforePause = Date.now() - startTime;
+            
+            // UI 更新
+            dom.mainBtn.innerHTML = ICONS.play;
+            dom.resetBtn.classList.remove('hidden');
+            
+            if (reason === "不平") {
+                showToast();
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            currentState = STATE.IDLE;
+            elapsedBeforePause = 0;
+            dom.timer.innerText = "00 : 00 : 00";
+            dom.mainBtn.innerHTML = ICONS.play;
+            dom.mainBtn.classList.remove('counting');
+            dom.resetBtn.classList.add('hidden');
+            
+            // 让现有粒子飘走
+        }
+
+        let countdownVal = 5;
+        function startCountdown() {
+            // 请求权限 (iOS 13+)
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState !== 'granted') {
+                            alert('需要陀螺仪权限才能检测水平');
+                            return;
+                        }
+                    })
+                    .catch(console.error);
+            }
+
+            currentState = STATE.COUNTDOWN;
+            countdownVal = 5;
+            dom.mainBtn.innerText = countdownVal;
+            dom.mainBtn.classList.add('counting');
+            dom.resetBtn.classList.add('hidden');
+
+            const intv = setInterval(() => {
+                countdownVal--;
+                if (countdownVal > 0) {
+                    dom.mainBtn.innerText = countdownVal;
+                } else {
+                    clearInterval(intv);
+                    dom.mainBtn.classList.remove('counting');
+                    
+                    // 检测水平
+                    if (isLevel) {
+                        startTimer();
+                    } else {
+                        // 倒计时结束但不平
+                        dom.mainBtn.innerText = "!";
+                        showToast();
+                        // 此时状态该如何？回到 Pause 状态允许重试
+                        currentState = STATE.PAUSED;
+                        dom.mainBtn.innerHTML = ICONS.play;
+                        dom.resetBtn.classList.remove('hidden');
+                    }
+                }
+            }, 1000);
+        }
+
+        /**
+         * 事件监听
+         */
+
+        // 按钮点击
+        dom.mainBtn.addEventListener('click', () => {
+            if (currentState === STATE.IDLE || currentState === STATE.PAUSED) {
+                startCountdown();
+            } else if (currentState === STATE.RUNNING) {
+                pauseTimer("手动");
+            }
         });
 
-        if (particles.length > 0 || isParticleGenerating) {
-            requestAnimationFrame(animate);
-        }
-    }
+        dom.resetBtn.addEventListener('click', resetTimer);
 
-    // 默认执行一次循环以初始化
-    requestAnimationFrame(animate);
+        // 主题切换
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                dom.body.classList.remove(THEMES[currentThemeIndex]);
+                currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
+                dom.body.classList.add(THEMES[currentThemeIndex]);
+                // 如果在 IDLE 态刷新粒子样式供预览
+                if(currentState === STATE.IDLE) initParticles();
+            }
+        });
 
-</script>
+        // 陀螺仪处理
+        window.addEventListener('deviceorientation', (event) => {
+            // Beta: x轴 (前后倾斜), Gamma: y轴 (左右倾斜)
+            // 限制范围在 -90 到 90 方便计算
+            let b = event.beta; 
+            let g = event.gamma;
+            
+            if (b > 90) b = 90;
+            if (b < -90) b = -90;
+            
+            currentBeta = b || 0;
+            currentGamma = g || 0;
+            
+            updateOrientationUI();
+        });
+
+        // PC 鼠标模拟
+        window.addEventListener('mousemove', (e) => {
+            // 仅当非移动设备（检测不到陀螺仪事件或手动测试）时有效
+            // 这里简单共存，方便调试
+            if (!/Mobi|Android/i.test(navigator.userAgent)) {
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                
+                // 将鼠标距离中心的距离映射到角度
+                // 假设从中心到边缘是 45 度
+                const maxDistX = window.innerWidth / 2;
+                const maxDistY = window.innerHeight / 2;
+                
+                currentGamma = ((e.clientX - centerX) / maxDistX) * 45; // 左右
+                currentBeta = ((e.clientY - centerY) / maxDistY) * 45; // 前后
+                
+                updateOrientationUI();
+            }
+        });
+
+        // Page Visibility (切屏、息屏检测)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && currentState === STATE.RUNNING) {
+                pauseTimer("后台");
+            }
+        });
+
+        // 初始化
+        updateOrientationUI();
+
+    </script>
 </body>
 </html>
