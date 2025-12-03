@@ -36,10 +36,6 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            /* 处理刘海屏安全区域 */
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-            
             overflow: hidden;
             font-family: 'Fredoka', sans-serif;
             background-color: var(--bg-color);
@@ -51,80 +47,11 @@
 
         .wood-layer {
             position: absolute;
-            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            top: 2vmin; left: 2vmin; right: 2vmin; bottom: 2vmin;
             background: repeating-linear-gradient(45deg, var(--wood-light), var(--wood-light) 10px, var(--wood-dark) 10px, var(--wood-dark) 20px);
-            border-radius: 24px;
+            border-radius: 30px;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
             z-index: 1;
-            transition: 0.5s;
-        }
-
-        /* --- 容器核心 --- */
-        .container {
-            position: relative;
-            z-index: 10;
-            background-color: var(--container-bg);
-            border-radius: 30px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            transition: background-color 0.5s;
-            display: flex;
-            align-items: center;
-            justify-content: space-evenly;
-            padding: 20px;
-            
-            /* 关键修改：绝对限制大小，永远留出边距 */
-            width: auto;
-            height: auto;
-            max-width: 90vw;
-            max-height: 90vh;
-        }
-
-        /* 竖屏模式 (默认) */
-        @media (orientation: portrait) {
-            .container {
-                flex-direction: column;
-                width: 85vw;
-                /* 保持一定的长宽比，但不要溢出 */
-                aspect-ratio: 9/14; 
-            }
-            .level-wrapper {
-                flex: 1;
-                width: 100%;
-                max-height: 45%; /* 限制水平仪高度 */
-            }
-            .right-panel {
-                width: 100%;
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-evenly;
-            }
-        }
-
-        /* 横屏模式 (关键修复) */
-        @media (orientation: landscape) {
-            .container {
-                flex-direction: row; /* 改为左右排列 */
-                width: 85vw; /* 宽度拉长 */
-                height: 80vh; /* 高度占满 */
-                max-width: 700px; /* 限制平板上太宽 */
-                aspect-ratio: auto;
-                padding: 10px 30px; /* 左右留白多一点 */
-            }
-            .level-wrapper {
-                height: 100%; /* 高度撑满 */
-                width: 45%;   /* 宽度占左边 */
-                max-height: none;
-            }
-            .right-panel {
-                width: 50%;   /* 右边放按钮和字 */
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                gap: 10px;
-            }
         }
 
         #particle-canvas {
@@ -134,63 +61,160 @@
             z-index: 20;
         }
 
-        /* --- 水平仪 --- */
-        .level-wrapper {
+        /* 
+           ========================================
+           核心布局：自适应容器
+           ========================================
+        */
+        .container {
             position: relative;
+            z-index: 10;
+            background-color: var(--container-bg);
+            border-radius: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 20px;
             display: flex;
+            
+            /* 平滑过渡：当布局切换时，尺寸变化会有动画 */
+            transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                        height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        background-color 0.5s;
+        }
+
+        /* 子元素容器 */
+        .level-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            /* 默认占满，具体由flex布局控制 */
+        }
+        
+        .info-panel {
+            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
         }
 
         #level-canvas {
-            max-width: 100%;
-            max-height: 100%;
+            /* 宽高设为100%，由父容器 .level-section 决定实际大小 */
+            width: 100%;
+            height: 100%;
             object-fit: contain;
-            border-radius: 50%;
         }
 
-        /* --- 计时器文字 --- */
+        /* 
+           Scenario A: 竖屏布局 (Aspect Ratio <= 1/1) 
+           逻辑：上下排列。容器比例 3:4
+        */
+        @media (max-aspect-ratio: 1/1) {
+            .container {
+                /* 强制宽高比 3:4 */
+                aspect-ratio: 3/4;
+                /* 布局方向：垂直 */
+                flex-direction: column;
+                
+                /* 尺寸约束：最大不能超过视口减去边距 */
+                width: calc(100vw - 50px); 
+                max-height: calc(100vh - 100px);
+                
+                /* 如果按比例算出来的高度溢出了，就以高度为基准反推宽度 */
+                max-width: calc((100vh - 100px) * 3 / 4);
+            }
+
+            .level-section {
+                flex: 1.2; /* 水平仪稍微大一点 */
+                width: 100%;
+                min-height: 0; /* Flexbox 溢出修复 */
+            }
+
+            .info-panel {
+                flex: 1;
+                width: 100%;
+                justify-content: space-evenly;
+            }
+        }
+
+        /* 
+           Scenario B: 横屏布局 (Aspect Ratio > 1/1) 
+           逻辑：左右排列。容器比例 4:3 (或者更宽，如 16:9 也可以，这里用 4:3 保持卡片感)
+        */
+        @media (min-aspect-ratio: 1.001/1) {
+            .container {
+                /* 切换为横向比例 */
+                aspect-ratio: 4/3; 
+                flex-direction: row;
+                
+                /* 尺寸约束 */
+                height: calc(100vh - 80px); /* 上下留白 */
+                max-width: calc(100vw - 100px);
+                
+                /* 如果按比例算出来的宽度溢出了，就以宽度为基准反推高度 */
+                max-height: calc((100vw - 100px) * 3 / 4);
+            }
+
+            .level-section {
+                flex: 1;
+                height: 100%;
+                min-width: 0;
+            }
+
+            .info-panel {
+                flex: 1;
+                height: 100%;
+                justify-content: center;
+                gap: 20px; /* 元素间距 */
+            }
+            
+            /* 横屏下的微调 */
+            .timer-display {
+                margin-bottom: 20px;
+            }
+        }
+
+
+        /* --- UI 组件样式 --- */
+
         .timer-display {
-            /* 使用 vmin 确保在横屏高度很小时，字体也会变小 */
-            font-size: clamp(24px, 8vmin, 48px);
+            /* 字号随容器大小动态变化，使用 cqi (Container Query Units) 的思想，这里用百分比模拟 */
+            font-size: clamp(24px, 5cqw, 48px); /* Fallback */
+            font-size: min(8vh, 8vw); /* 简单粗暴的响应式字号 */
+            
             font-weight: 600;
             color: var(--text-color);
             letter-spacing: 1px;
             text-align: center;
+            font-variant-numeric: tabular-nums;
             white-space: nowrap;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 5px 0;
         }
 
-        /* --- 按钮 --- */
         .controls {
             display: flex;
             gap: 20px;
             align-items: center;
             justify-content: center;
-            width: 100%;
         }
 
         .btn {
-            /* 按钮也随 vmin 缩放，保证协调 */
-            width: clamp(50px, 12vmin, 80px);
-            height: clamp(50px, 12vmin, 80px);
+            /* 按钮尺寸响应式 */
+            width: min(80px, 18vmin);
+            height: min(80px, 18vmin);
             border-radius: 30%;
             border: none;
             background-color: var(--secondary-color);
             color: var(--primary-color);
             cursor: pointer;
-            box-shadow: 0 5px 0 var(--btn-shadow);
-            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 var(--btn-shadow);
+            transition: transform 0.1s, box-shadow 0.1s;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
 
-        .btn svg { width: 50%; height: 50%; fill: currentColor; pointer-events: none; }
-        .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--btn-shadow); }
+        .btn svg { width: 50%; height: 50%; fill: currentColor; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--btn-shadow); }
         .btn.hidden { display: none; }
         .btn-text-mode { font-size: 1.5rem; color: var(--primary-color); font-weight: bold; }
 
@@ -202,19 +226,15 @@
     <canvas id="particle-canvas"></canvas>
 
     <div class="container">
-        <!-- 上部（或左部）：水平仪 -->
-        <div class="level-wrapper">
+        <!-- 左/上部分：水平仪 -->
+        <div class="level-section">
             <canvas id="level-canvas"></canvas>
         </div>
 
-        <!-- 包装器：用于在横屏时将文字和按钮归为一组放在右边 -->
-        <div class="right-panel">
-            <!-- 中部：计时器 -->
-            <div class="timer-display" id="timer">
-                00 : 00 : 00
-            </div>
-
-            <!-- 下部：按钮 -->
+        <!-- 右/下部分：信息面板 -->
+        <div class="info-panel">
+            <div class="timer-display" id="timer">00 : 00 : 00</div>
+            
             <div class="controls">
                 <button class="btn" id="btn-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
                 <button class="btn hidden" id="btn-pause"><svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
@@ -224,7 +244,8 @@
     </div>
 
     <script>
-        // 常量与状态
+        // --- 核心 JS 逻辑 (保持不变，仅调整 Canvas 自适应调用) ---
+        
         const STATE = { IDLE: 'IDLE', COUNTDOWN: 'COUNTDOWN', RUNNING: 'RUNNING', PAUSED: 'PAUSED' };
         const THEMES = ['spring', 'summer', 'autumn', 'winter', 'dark'];
         const EMOJIS = ['😺','😸','😹','😻','😼','😽','😾','😿','🙀'];
@@ -259,18 +280,26 @@
         function setupCanvas(canvas) {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return; // 防止不可见时报错
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            const ctx = canvas.getContext('2d');
-            ctx.scale(dpr, dpr);
+            // 只有当尺寸确实改变时才重新设置，避免不必要的重绘抖动
+            if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+            }
+            return { width: rect.width, height: rect.height };
         }
 
         function init() {
+            // 立即执行一次布局计算
             resizeCanvases();
-            window.addEventListener('resize', resizeCanvases);
-            window.addEventListener('keydown', handleKeydown);
             
+            // 监听窗口大小变化
+            window.addEventListener('resize', () => {
+                resizeCanvases();
+            });
+            
+            window.addEventListener('keydown', handleKeydown);
             btnPlay.addEventListener('click', handlePlayClick);
             btnPause.addEventListener('click', handlePause);
             btnRestart.addEventListener('click', handleRestart);
@@ -280,7 +309,7 @@
 
             requestAnimationFrame(renderLoop);
             initOrientation();
-            updateTimerDisplay(); // 立即显示 Emoji
+            updateTimerDisplay(); // 初始 Emoji
         }
 
         async function handlePlayClick() {
@@ -325,7 +354,6 @@
             btnPause.classList.remove('hidden');
             isParticleGenerating = true;
             isParticleFrozen = false;
-            
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 elapsedTime = Date.now() - startTime;
@@ -356,7 +384,7 @@
             updateTimerDisplay();
             isParticleFrozen = false;
             isParticleGenerating = false;
-            particles = []; 
+            particles = [];
             btnPlay.classList.remove('hidden');
             btnRestart.classList.add('hidden');
             btnPause.classList.add('hidden');
@@ -369,22 +397,26 @@
         }
 
         function drawLevel() {
+            // 获取最新尺寸
             const rect = levelCanvas.getBoundingClientRect();
+            // 在 CSS 约束下，Canvas 尺寸是动态的。
+            // 这里取宽高的最小值作为绘制直径，保证圆始终是圆
             const w = rect.width;
             const h = rect.height;
-            // 避免除以0
-            if(w === 0 || h === 0) return;
-
             const cx = w / 2;
             const cy = h / 2;
-            // 动态半径：根据画布最小边的一半，留出一点padding
-            const radius = Math.min(w, h) / 2 - 4; 
+            
+            // 半径取宽高中较小值的一半，稍微留点边距
+            const radius = Math.min(w, h) / 2 - 10; 
             const maxOffset = radius * 0.7; 
 
             lCtx.save();
             lCtx.setTransform(1, 0, 0, 1, 0, 0);
             lCtx.clearRect(0, 0, levelCanvas.width, levelCanvas.height);
             lCtx.restore();
+
+            // 如果半径太小（比如窗口极度压缩），就不画了
+            if (radius <= 0) return;
 
             let dx = (tiltX / MAX_TILT) * maxOffset;
             let dy = (tiltY / MAX_TILT) * maxOffset;
@@ -403,12 +435,14 @@
             const green = getComputedStyle(document.body).getPropertyValue('--accent-green').trim() || '#95D5B2';
             const mainColor = isLevel ? green : gray;
 
+            // 外圈
             lCtx.lineWidth = 6;
             lCtx.strokeStyle = mainColor;
             lCtx.beginPath();
             lCtx.arc(cx, cy, radius, 0, Math.PI * 2);
             lCtx.stroke();
 
+            // 内发光
             if (isLevel) {
                 lCtx.lineWidth = 4;
                 lCtx.strokeStyle = mainColor + '66';
@@ -417,6 +451,7 @@
                 lCtx.stroke();
             }
 
+            // 十字轴
             if (!isLevel) {
                 lCtx.lineWidth = 2;
                 lCtx.strokeStyle = '#f0f0f0';
@@ -425,6 +460,7 @@
                 lCtx.moveTo(cx, cy - radius + 20); lCtx.lineTo(cx, cy + radius - 20);
                 lCtx.stroke();
                 
+                // 误差圈
                 const toleranceRadius = (TOLERANCE / MAX_TILT) * maxOffset;
                 lCtx.beginPath();
                 lCtx.setLineDash([5, 5]);
@@ -435,6 +471,7 @@
                 lCtx.setLineDash([]);
             }
 
+            // 准星气泡
             const bubbleX = cx + dx;
             const bubbleY = cy + dy;
 
@@ -466,11 +503,8 @@
 
             if (isParticleGenerating && !isParticleFrozen) {
                 if (Math.random() < 0.1) {
+                    const baseScale = Math.min(w, h) * 0.02; // 动态基准大小
                     const sizeBase = Math.random();
-                    // 使用 vmin 计算粒子大小，防止横屏时粒子过大
-                    const vmin = Math.min(w, h);
-                    const baseScale = vmin * 0.02; 
-                    
                     let sizeMultiplier = 1;
                     if (sizeBase < 0.25) sizeMultiplier = 0.6;
                     else if (sizeBase < 0.75) sizeMultiplier = 1.2;
