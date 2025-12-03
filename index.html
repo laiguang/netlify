@@ -2,12 +2,18 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Cozy Focus Timer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cozy Focus Timer V2</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        /* 
+         ========================================
+         调试配置区 (DEBUG CONFIGURATION)
+         在这里调整不同设备下的字号
+         ========================================
+        */
         :root {
-            /* 基础配色 */
+            /* 全局颜色变量 */
             --bg-color: #FFB7B2;
             --wood-light: #eecbc4;
             --wood-dark: #dcaea5;
@@ -17,25 +23,46 @@
             --text-color: #5D4037;
             --accent-green: #95D5B2;
             --btn-shadow: rgba(226, 125, 96, 0.4);
+
+            /* --- 默认（手机竖屏）配置 --- */
+            --timer-font-size: 32px;      /* 计时器字号 */
+            --emoji-font-size: 28px;      /* Emoji字号 */
+            --container-padding: 20px;
+            --level-size: 160px;          /* 水平仪尺寸 */
+            --btn-size: 70px;             /* 按钮尺寸 */
         }
 
-        /* 主题定义 (保持不变) */
+        /* --- 平板 (视口宽度 > 600px) --- */
+        @media (min-width: 600px) {
+            :root {
+                --timer-font-size: 48px;
+                --emoji-font-size: 42px;
+                --level-size: 200px;
+                --btn-size: 80px;
+            }
+        }
+
+        /* --- 电脑 (视口宽度 > 1024px) --- */
+        @media (min-width: 1024px) {
+            :root {
+                --timer-font-size: 64px;
+                --emoji-font-size: 56px;
+                --level-size: 240px;
+                --btn-size: 90px;
+            }
+        }
+
+        /* 主题颜色定义 (保持不变) */
         [data-theme="summer"] { --bg-color: #95D5B2; --wood-light: #B7E4C7; --wood-dark: #74C69D; --container-bg: #F0FFF4; --primary-color: #40916C; --secondary-color: #B7E4C7; --text-color: #1B4332; --btn-shadow: rgba(64, 145, 108, 0.4); }
-        [data-theme="autumn"] { --bg-color: #E29578; --wood-light: #F6BD60; --wood-dark: #dba64e; --container-bg: #FFF8E7; --primary-color: #A65D48; --secondary-color: #F6BD60; --text-color: #5D3A29; --accent-green: #81B29A; --btn-shadow: rgba(166, 93, 72, 0.4); }
-        [data-theme="winter"] { --bg-color: #98C1D9; --wood-light: #E0FBFC; --wood-dark: #c2dfe0; --container-bg: #F0F8FF; --primary-color: #3D5A80; --secondary-color: #E0FBFC; --text-color: #293241; --accent-green: #98C1D9; --btn-shadow: rgba(61, 90, 128, 0.4); }
-        [data-theme="dark"] { --bg-color: #293241; --wood-light: #3D5A80; --wood-dark: #2b4566; --container-bg: #222831; --primary-color: #E0FBFC; --secondary-color: rgba(255, 255, 255, 0.1); --text-color: #E0FBFC; --accent-green: #98C1D9; --btn-shadow: rgba(0, 0, 0, 0.5); }
+        [data-theme="autumn"] { --bg-color: #E29578; --wood-light: #F6BD60; --wood-dark: #dba64e; --container-bg: #FFF8E7; --primary-color: #A65D48; --secondary-color: #F6BD60; --text-color: #5D3A29; --btn-shadow: rgba(166, 93, 72, 0.4); }
+        [data-theme="winter"] { --bg-color: #98C1D9; --wood-light: #E0FBFC; --wood-dark: #c2dfe0; --container-bg: #F0F8FF; --primary-color: #3D5A80; --secondary-color: #E0FBFC; --text-color: #293241; --btn-shadow: rgba(61, 90, 128, 0.4); }
+        [data-theme="dark"] { --bg-color: #293241; --wood-light: #3D5A80; --wood-dark: #2b4566; --container-bg: #222831; --primary-color: #E0FBFC; --secondary-color: rgba(255, 255, 255, 0.1); --text-color: #E0FBFC; --btn-shadow: rgba(0, 0, 0, 0.5); }
 
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
         body {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
             overflow: hidden;
             font-family: 'Fredoka', sans-serif;
             background-color: var(--bg-color);
@@ -46,211 +73,209 @@
         }
 
         .wood-layer {
-            position: absolute;
-            top: 1.5vmin; left: 1.5vmin; right: 1.5vmin; bottom: 1.5vmin;
+            position: absolute; top: 2vmin; left: 2vmin; right: 2vmin; bottom: 2vmin;
             background: repeating-linear-gradient(45deg, var(--wood-light), var(--wood-light) 10px, var(--wood-dark) 10px, var(--wood-dark) 20px);
-            border-radius: 20px;
+            border-radius: 30px;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
             z-index: 1;
-            transition: 0.5s;
-        }
-
-        #particle-canvas {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 20;
         }
 
         /* 
-           === 核心布局容器 === 
-           逻辑：使用相对单位 em 进行内部布局，
-           通过改变 font-size 来控制整体缩放。
+         ========================================
+         核心布局逻辑 (Layout Strategy)
+         ========================================
         */
         .container {
-            position: relative;
-            z-index: 10;
+            position: relative; z-index: 10;
             background-color: var(--container-bg);
+            border-radius: 40px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            transition: background-color 0.5s, width 0.3s, height 0.3s;
-            
-            /* 
-               基准尺寸控制：
-               取视口宽高的较小值 (vmin) 作为基准。
-               除以一个系数 (比如24)，意味着视口短边大约能容纳 24 个单位字号。
-               这样无论屏幕多大，UI 比例始终保持一致。
-            */
-            font-size: calc(min(100vw, 100vh) / 24); 
-
-            /* 容器最大不超过 90% 的视口 */
-            width: 88vw;
-            height: 88vh;
-            border-radius: 2.5em; /* 相对圆角 */
-            padding: 2em;
+            padding: var(--container-padding);
+            transition: background-color 0.5s;
             
             display: flex;
-            justify-content: center;
+            /* 默认：竖屏 Flex Column */
+            flex-direction: column;
             align-items: center;
-            gap: 2em;
+            justify-content: space-between;
+            
+            /* 强制 3:4 比例，但不能超出屏幕 */
+            width: auto;
+            height: auto;
+            aspect-ratio: 3/4;
+            max-height: 85vh;
+            max-width: 85vw;
         }
 
-        /* 
-           === 布局切换逻辑 === 
-           视口宽高比 <= 1 (竖屏/方形) -> 纵向排列
-        */
-        @media (max-aspect-ratio: 1/1) {
-            .container {
-                flex-direction: column;
-            }
-            .level-section {
-                flex: 1; /* 占据更多空间 */
-                width: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: flex-end; /* 靠下一点，接近中间 */
-                padding-bottom: 1em;
-            }
-            .info-section {
-                flex: 0 0 auto;
-                width: 100%;
-                margin-bottom: 2em;
-            }
-            #level-canvas {
-                /* 竖屏时，水平仪大小由宽度决定，但限制最大高度 */
-                width: 16em; 
-                height: 16em;
-            }
-        }
-
-        /* 
-           视口宽高比 > 1 (横屏) -> 横向排列 
-        */
-        @media (min-aspect-ratio: 1.01/1) {
-            .container {
-                flex-direction: row;
-                /* 横屏时稍微调整容器宽高限制，防止太扁 */
-                height: 85vh; 
-                width: 85vw;
-                max-width: 1200px; /* 电脑上限制最大宽度 */
-            }
-            .level-section {
-                flex: 1;
-                height: 100%;
-                display: flex;
-                justify-content: flex-end; /* 靠右，接近中间 */
-                align-items: center;
-                padding-right: 1em;
-            }
-            .info-section {
-                flex: 1;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                justify-content: center; /* 垂直居中 */
-                align-items: flex-start; /* 靠左 */
-                padding-left: 1em;
-            }
-            #level-canvas {
-                /* 横屏时，水平仪稍微大一点 */
-                width: 18em;
-                height: 18em;
-            }
-        }
-
-        /* === 组件样式 (全部使用 em) === */
-        
-        .level-section {
-            /* 布局辅助 */
-        }
-        
-        #level-canvas {
-            border-radius: 50%;
-            /* 尺寸在 media query 中定义，保证比例 */
-            transition: width 0.3s, height 0.3s;
-        }
-
+        /* 包装器：用于处理横屏时的右侧布局 */
         .info-section {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1.5em;
+            justify-content: space-evenly;
+            width: 100%;
+            height: 50%; /* 竖屏时占下半部分 */
         }
 
+        .level-wrapper {
+            width: var(--level-size);
+            height: var(--level-size);
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 
+         --- 横屏适配 (视口宽高比 > 1:1) --- 
+         电脑、平板横放时触发
+        */
+        @media (min-aspect-ratio: 1/1) {
+            .container {
+                /* 强制 4:3 比例 */
+                aspect-ratio: 4/3;
+                flex-direction: row; /* 改为左右布局 */
+                padding: 40px;
+                gap: 20px;
+            }
+
+            .info-section {
+                height: 100%; /* 横屏时占满高度 */
+                width: 50%;   /* 占右边一半 */
+            }
+
+            .level-wrapper {
+                margin-right: 20px;
+            }
+        }
+
+        /* 
+         ========================================
+         组件样式
+         ========================================
+        */
+        #level-canvas {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+        }
+
+        /* 计时器：强制不换行 */
         .timer-display {
-            font-size: 2.5em; /* 相对于容器 font-size */
-            font-weight: 600;
+            font-size: var(--timer-font-size);
             color: var(--text-color);
-            letter-spacing: 0.05em;
+            letter-spacing: 1px;
+            text-align: center;
             font-variant-numeric: tabular-nums;
-            white-space: nowrap;
-            line-height: 1.2;
+            white-space: nowrap; /* 禁止换行 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        /* 专门控制 Emoji 的大小，防止撑开布局 */
+        .timer-emoji {
+            font-size: var(--emoji-font-size);
+            line-height: 1;
         }
 
         .controls {
-            display: flex;
-            gap: 1em;
+            display: flex; gap: 20px;
+            align-items: center; justify-content: center;
+            width: 100%;
         }
 
         .btn {
-            width: 3.5em;
-            height: 3.5em;
-            border-radius: 1.2em; /* Squircle */
+            width: var(--btn-size);
+            height: var(--btn-size);
+            border-radius: 35%; /* Squircle */
             border: none;
             background-color: var(--secondary-color);
             color: var(--primary-color);
             cursor: pointer;
-            box-shadow: 0 0.25em 0 var(--btn-shadow);
-            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1em; /* 重置内部字号 */
+            box-shadow: 0 6px 0 var(--btn-shadow);
+            transition: all 0.15s;
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
+            font-size: calc(var(--btn-size) * 0.35); /* 字号随按钮大小变 */
+            font-weight: bold;
         }
-
         .btn svg { width: 50%; height: 50%; fill: currentColor; pointer-events: none; }
-        .btn:active { transform: translateY(0.2em); box-shadow: 0 0 0 var(--btn-shadow); }
+        .btn:active { transform: translateY(6px); box-shadow: 0 0 0 var(--btn-shadow); }
         .btn.hidden { display: none; }
-        .btn-text-mode { font-size: 1.5em; font-weight: bold; }
 
+        /* 画布 */
+        .fullscreen-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 20; pointer-events: none;
+        }
     </style>
 </head>
 <body data-theme="spring">
 
     <div class="wood-layer"></div>
-    <canvas id="particle-canvas"></canvas>
+    <canvas id="particle-canvas" class="fullscreen-canvas"></canvas>
 
-    <!-- 容器：作为整体缩放的基准 -->
+    <!-- 容器 -->
     <div class="container">
-        
-        <!-- 左侧/上部：水平仪区域 -->
-        <div class="level-section">
+        <!-- 左侧/上部：水平仪 -->
+        <div class="level-wrapper">
             <canvas id="level-canvas"></canvas>
         </div>
 
-        <!-- 右侧/下部：信息与控制区域 -->
+        <!-- 右侧/下部：信息区 -->
         <div class="info-section">
+            <!-- 计时器 -->
             <div class="timer-display" id="timer">
-                00 : 00 : 00
+                <!-- JS将填充内容 -->
             </div>
 
+            <!-- 按钮 -->
             <div class="controls">
-                <button class="btn" id="btn-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-                <button class="btn hidden" id="btn-pause"><svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
-                <button class="btn hidden" id="btn-restart"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 5.52 4.48 10 10 10s10-4.48 10-10S19.52 5 12 5z"/></svg></button>
+                <button class="btn" id="btn-play">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <button class="btn hidden" id="btn-pause">
+                    <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <button class="btn hidden" id="btn-restart">
+                    <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 5.52 4.48 10 10 10s10-4.48 10-10S19.52 5 12 5z"/></svg>
+                </button>
             </div>
         </div>
-
     </div>
 
     <script>
-        // 常量与状态
+        /* 
+         ========================================
+         JS 调试配置区 (JS DEBUG CONFIG)
+         在这里调整粒子的缩放比例
+         ========================================
+        */
+        const CONFIG = {
+            // 粒子尺寸倍率 (基准值为1)
+            particleScale: {
+                mobile: 0.6,   // 手机上粒子调小
+                tablet: 0.8,
+                desktop: 1.0
+            }
+        };
+
+        // 获取设备类型用于配置
+        function getDeviceType() {
+            const width = window.innerWidth;
+            if (width < 600) return 'mobile';
+            if (width < 1024) return 'tablet';
+            return 'desktop';
+        }
+
         const STATE = { IDLE: 'IDLE', COUNTDOWN: 'COUNTDOWN', RUNNING: 'RUNNING', PAUSED: 'PAUSED' };
         const THEMES = ['spring', 'summer', 'autumn', 'winter', 'dark'];
         const EMOJIS = ['😺','😸','😹','😻','😼','😽','😾','😿','🙀'];
-        const TOLERANCE = 3; 
+        const TOLERANCE = 3;
         const MAX_TILT = 20;
 
-        // 元素
+        // UI 元素
         const timerEl = document.getElementById('timer');
         const btnPlay = document.getElementById('btn-play');
         const btnPause = document.getElementById('btn-pause');
@@ -260,7 +285,6 @@
         const lCtx = levelCanvas.getContext('2d');
         const pCtx = particleCanvas.getContext('2d');
 
-        // 变量
         let currentState = STATE.IDLE;
         let themeIndex = 0;
         let startTime = 0;
@@ -268,62 +292,46 @@
         let timerInterval = null;
         let countdownValue = 5;
         let countdownInterval = null;
-        let tiltX = 0, tiltY = 0;
+        let tiltX = 0;
+        let tiltY = 0;
         let isLevel = false;
-        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // 简单判断是否是移动设备（仅用于陀螺仪开关逻辑）
+        let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Emoji 缓存
         let cachedEmojis = { h: null, m: null, s: null };
         let particles = [];
         let isParticleGenerating = false;
         let isParticleFrozen = false;
 
-        // Canvas 高清适配
-        function setupCanvas(canvas) {
-            const dpr = window.devicePixelRatio || 1;
-            // 获取 CSS 计算后的精确像素尺寸
-            const rect = canvas.getBoundingClientRect();
-            
-            // 防止宽高为0导致的报错
-            if(rect.width === 0 || rect.height === 0) return { width: 0, height: 0 };
-
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            
-            const ctx = canvas.getContext('2d');
-            // 重置 transform 以防叠加
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
-            
-            return { width: rect.width, height: rect.height };
-        }
-
         function init() {
-            // 初始化尺寸
             resizeCanvases();
-            window.addEventListener('resize', () => {
-                resizeCanvases();
-                // 窗口大小剧烈变化时，粒子可能也需要重绘或调整，这里保持简单继续运行
-            });
+            window.addEventListener('resize', resizeCanvases);
             window.addEventListener('keydown', handleKeydown);
             
             btnPlay.addEventListener('click', handlePlayClick);
             btnPause.addEventListener('click', handlePause);
             btnRestart.addEventListener('click', handleRestart);
+
             document.addEventListener('visibilitychange', () => {
-                if (document.hidden && currentState === STATE.RUNNING) handlePause();
+                if (document.hidden && currentState === STATE.RUNNING) {
+                    handlePause();
+                }
             });
+
+            // 立即初始化一次显示 (解决初始显示00的问题)
+            updateTimerDisplay();
 
             requestAnimationFrame(renderLoop);
             initOrientation();
-            updateTimerDisplay(); // 初始显示 emoji
         }
 
-        // --- 逻辑控制 ---
         async function handlePlayClick() {
             if (currentState === STATE.IDLE || currentState === STATE.PAUSED) {
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    try { await DeviceOrientationEvent.requestPermission(); } catch (e) { console.error(e); }
+                    try {
+                        const response = await DeviceOrientationEvent.requestPermission();
+                        if (response !== 'granted') return;
+                    } catch (e) { console.error(e); }
                 }
                 startCountdown();
             }
@@ -332,16 +340,16 @@
         function startCountdown() {
             currentState = STATE.COUNTDOWN;
             countdownValue = 5;
-            btnPlay.innerHTML = `<span class="btn-text-mode">${countdownValue}</span>`;
+            btnPlay.innerHTML = `<span style="font-size:1.2em">${countdownValue}</span>`;
             btnPlay.classList.remove('hidden');
             btnPause.classList.add('hidden');
             btnRestart.classList.add('hidden');
-            if (countdownInterval) clearInterval(countdownInterval);
 
+            if (countdownInterval) clearInterval(countdownInterval);
             countdownInterval = setInterval(() => {
                 countdownValue--;
                 if (countdownValue > 0) {
-                    btnPlay.innerHTML = `<span class="btn-text-mode">${countdownValue}</span>`;
+                    btnPlay.innerHTML = `<span style="font-size:1.2em">${countdownValue}</span>`;
                 } else {
                     clearInterval(countdownInterval);
                     checkStartConditions();
@@ -351,7 +359,7 @@
 
         function checkStartConditions() {
             if (isLevel) startTimer();
-            else handlePause(); 
+            else handlePause();
         }
 
         function startTimer() {
@@ -362,7 +370,7 @@
             btnPause.classList.remove('hidden');
             isParticleGenerating = true;
             isParticleFrozen = false;
-            
+
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 elapsedTime = Date.now() - startTime;
@@ -376,10 +384,12 @@
                 currentState = STATE.PAUSED;
                 if (timerInterval) clearInterval(timerInterval);
                 if (countdownInterval) clearInterval(countdownInterval);
+                
                 btnPlay.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
                 btnPlay.classList.remove('hidden');
                 btnRestart.classList.remove('hidden');
                 btnPause.classList.add('hidden');
+                
                 isParticleGenerating = false;
                 isParticleFrozen = true;
             }
@@ -389,42 +399,40 @@
             handlePause();
             currentState = STATE.IDLE;
             elapsedTime = 0;
+            // 清除缓存的 emoji，下次00时重新随机
             cachedEmojis = { h: null, m: null, s: null }; 
             updateTimerDisplay();
-            isParticleFrozen = false;
+            
+            isParticleFrozen = false; 
             isParticleGenerating = false;
-            particles = []; 
+            
             btnPlay.classList.remove('hidden');
             btnRestart.classList.add('hidden');
             btnPause.classList.add('hidden');
         }
 
-        // --- 渲染逻辑 ---
         function renderLoop() {
             drawLevel();
             drawParticles();
             requestAnimationFrame(renderLoop);
         }
 
+        /* --- 绘图逻辑优化：支持高清屏 --- */
         function drawLevel() {
-            // 获取当前 CSS 布局下的实际逻辑宽高
-            // 注意：resizeCanvases 会更新 canvas 的 width/height 属性，
-            // 但我们需要的是逻辑像素大小来计算绘图坐标
-            const rect = levelCanvas.getBoundingClientRect();
-            const w = rect.width;
-            const h = rect.height;
-            
-            // 清空（因为 setupCanvas 做了 scale，所以 clearRect 用逻辑坐标）
-            lCtx.clearRect(0, 0, w, h);
-
+            const w = levelCanvas.width;
+            const h = levelCanvas.height;
             const cx = w / 2;
             const cy = h / 2;
-            const radius = Math.min(w, h) / 2 - 4; 
-            const maxOffset = radius * 0.7; 
+            const radius = (w / 2) - 4; 
+            // 修正：maxOffset 必须与 radius 匹配，不能写死像素
+            const maxOffset = radius * 0.75; 
+
+            lCtx.clearRect(0, 0, w, h);
 
             let dx = (tiltX / MAX_TILT) * maxOffset;
             let dy = (tiltY / MAX_TILT) * maxOffset;
             const dist = Math.sqrt(dx*dx + dy*dy);
+            
             if (dist > maxOffset) {
                 const angle = Math.atan2(dy, dx);
                 dx = Math.cos(angle) * maxOffset;
@@ -439,35 +447,36 @@
             const green = getComputedStyle(document.body).getPropertyValue('--accent-green').trim() || '#95D5B2';
             const mainColor = isLevel ? green : gray;
 
-            // 绘制
-            lCtx.lineWidth = 6;
-            lCtx.lineCap = 'round';
+            // 轮廓
+            lCtx.lineWidth = 12; // 加粗线条以适应高清缩放
             lCtx.strokeStyle = mainColor;
             lCtx.beginPath();
-            lCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            lCtx.arc(cx, cy, radius - 6, 0, Math.PI * 2);
             lCtx.stroke();
 
             if (isLevel) {
-                lCtx.lineWidth = 4;
+                lCtx.lineWidth = 8;
                 lCtx.strokeStyle = mainColor + '66';
                 lCtx.beginPath();
-                lCtx.arc(cx, cy, radius - 8, 0, Math.PI * 2);
+                lCtx.arc(cx, cy, radius - 20, 0, Math.PI * 2);
                 lCtx.stroke();
             }
 
             if (!isLevel) {
-                lCtx.lineWidth = 2;
+                lCtx.lineWidth = 4;
                 lCtx.strokeStyle = '#f0f0f0';
                 lCtx.beginPath();
-                lCtx.moveTo(cx - radius + 20, cy); lCtx.lineTo(cx + radius - 20, cy);
-                lCtx.moveTo(cx, cy - radius + 20); lCtx.lineTo(cx, cy + radius - 20);
+                lCtx.moveTo(cx - radius + 30, cy);
+                lCtx.lineTo(cx + radius - 30, cy);
+                lCtx.moveTo(cx, cy - radius + 30);
+                lCtx.lineTo(cx, cy + radius - 30);
                 lCtx.stroke();
-                
+
                 const toleranceRadius = (TOLERANCE / MAX_TILT) * maxOffset;
                 lCtx.beginPath();
-                lCtx.setLineDash([5, 5]);
+                lCtx.setLineDash([10, 10]); // 虚线间距加大
                 lCtx.strokeStyle = red;
-                lCtx.lineWidth = 2;
+                lCtx.lineWidth = 4;
                 lCtx.arc(cx, cy, toleranceRadius, 0, Math.PI * 2);
                 lCtx.stroke();
                 lCtx.setLineDash([]);
@@ -477,48 +486,47 @@
             const bubbleY = cy + dy;
 
             if (isLevel) {
-                lCtx.lineWidth = 4;
+                lCtx.lineWidth = 6;
                 lCtx.strokeStyle = green;
                 lCtx.beginPath();
-                lCtx.arc(bubbleX, bubbleY, radius * 0.1, 0, Math.PI * 2);
+                lCtx.arc(bubbleX, bubbleY, 25, 0, Math.PI * 2);
                 lCtx.stroke();
             } else {
                 lCtx.fillStyle = red;
                 lCtx.beginPath();
-                lCtx.arc(bubbleX, bubbleY, radius * 0.08, 0, Math.PI * 2);
+                lCtx.arc(bubbleX, bubbleY, 20, 0, Math.PI * 2);
                 lCtx.fill();
             }
         }
 
         function drawParticles() {
-            // 粒子画布是全屏的
-            const w = particleCanvas.width / (window.devicePixelRatio || 1);
-            const h = particleCanvas.height / (window.devicePixelRatio || 1);
-            
-            // 清空全屏
-            pCtx.clearRect(0, 0, w, h);
-
+            const w = particleCanvas.width;
+            const h = particleCanvas.height;
             const theme = document.body.getAttribute('data-theme');
             const isDark = theme === 'dark';
 
-            if (isParticleGenerating && !isParticleFrozen) {
-                if (Math.random() < 0.15) { // 稍微增加生成率
-                    const sizeBase = Math.random();
-                    // 粒子基准尺寸也基于视口
-                    const viewportMin = Math.min(window.innerWidth, window.innerHeight);
-                    const baseScale = viewportMin * 0.02; // 2% 的视口大小
-                    
-                    let sizeMultiplier = 1;
-                    if (sizeBase < 0.25) sizeMultiplier = 0.6;
-                    else if (sizeBase < 0.75) sizeMultiplier = 1.0;
-                    else sizeMultiplier = 1.4;
+            pCtx.clearRect(0, 0, w, h);
 
+            if (isParticleGenerating && !isParticleFrozen) {
+                if (Math.random() < 0.1) {
+                    // 获取当前设备类型的缩放系数
+                    const type = getDeviceType();
+                    const scaleMult = CONFIG.particleScale[type];
+
+                    const sizeBase = Math.random();
+                    let size = 20 * scaleMult; // 基础大小
+                    
+                    if (sizeBase < 0.25) size = 15 * scaleMult;
+                    else if (sizeBase < 0.75) size = 30 * scaleMult;
+                    else size = 15 * scaleMult;
+
+                    // 这里的坐标是基于实际像素的
                     particles.push({
                         x: Math.random() * w,
-                        y: isDark ? h + 20 : -20,
-                        vx: (Math.random() - 0.5) * 1.5,
-                        vy: isDark ? -(Math.random() * 2 + 1) : (Math.random() * 2 + 1),
-                        size: baseScale * sizeMultiplier, 
+                        y: isDark ? h + 40 : -40,
+                        vx: (Math.random() - 0.5) * 2 * (window.devicePixelRatio || 1), // 速度也要适配DPR
+                        vy: (isDark ? -(Math.random() * 2 + 1) : (Math.random() * 2 + 1)) * (window.devicePixelRatio || 1),
+                        size: size * (window.devicePixelRatio || 1), // 尺寸适配DPR
                         rotation: Math.random() * 360,
                         type: theme
                     });
@@ -530,13 +538,13 @@
                 if (!isParticleFrozen) {
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.rotation += 1.5;
+                    p.rotation += 2;
                 }
-                if ((!isDark && p.y > h + 50) || (isDark && p.y < -50)) {
+
+                if ((!isDark && p.y > h + 100) || (isDark && p.y < -100)) {
                     particles.splice(i, 1); i--; continue;
                 }
-                
-                // 绘制
+
                 pCtx.save();
                 pCtx.translate(p.x, p.y);
                 pCtx.rotate(p.rotation * Math.PI / 180);
@@ -548,20 +556,19 @@
         function drawThemeShape(ctx, theme, size) {
             ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary-color');
             ctx.strokeStyle = ctx.fillStyle;
-            size = Math.max(size, 4); // 最小尺寸限制
-
+            
             switch(theme) {
                 case 'spring': 
                     ctx.beginPath(); ctx.ellipse(0, 0, size/2, size, 0, 0, Math.PI*2); ctx.fill(); break;
                 case 'summer': 
-                    ctx.lineWidth = size/6; ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.stroke(); 
-                    ctx.beginPath(); ctx.arc(size/5, -size/5, size/8, 0, Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.fill(); break;
+                    ctx.lineWidth = size/8; ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.stroke(); 
+                    ctx.beginPath(); ctx.arc(size/6, -size/6, size/10, 0, Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.fill(); break;
                 case 'autumn': 
-                    ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size/1.5, 0); ctx.lineTo(0, size); ctx.lineTo(-size/1.5, 0); ctx.fill(); break;
+                    ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size/1.5, 0); ctx.lineTo(0, size); ctx.lineTo(-size/1.5, 0); ctx.closePath(); ctx.fill(); break;
                 case 'winter': 
-                    ctx.fillStyle='#FFF'; ctx.shadowBlur=4; ctx.shadowColor='#FFF'; ctx.beginPath(); ctx.arc(0, 0, size/2.5, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur=0; break;
+                    ctx.fillStyle='#FFFFFF'; ctx.shadowBlur=5; ctx.shadowColor='#FFFFFF'; ctx.beginPath(); ctx.arc(0,0,size/3,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; break;
                 case 'dark': 
-                    ctx.fillStyle='#F4D35E'; ctx.shadowBlur=8; ctx.shadowColor='#F4D35E'; ctx.globalAlpha=0.9; ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0; break;
+                    ctx.fillStyle='#F4D35E'; ctx.shadowBlur=10; ctx.shadowColor='#F4D35E'; ctx.globalAlpha=0.8; ctx.beginPath(); ctx.arc(0,0,size/3,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0; break;
             }
         }
 
@@ -570,7 +577,10 @@
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60);
             const s = totalSeconds % 60;
-            timerEl.textContent = `${formatUnit(h, 'h')} : ${formatUnit(m, 'm')} : ${formatUnit(s, 's')}`;
+
+            timerEl.innerHTML = `
+                ${formatUnit(h, 'h')} : ${formatUnit(m, 'm')} : ${formatUnit(s, 's')}
+            `;
         }
 
         function formatUnit(val, unitType) {
@@ -581,28 +591,28 @@
                 if (!cachedEmojis[unitType]) {
                     const e1 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
                     const e2 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-                    cachedEmojis[unitType] = e1 + e2;
+                    cachedEmojis[unitType] = `<span class="timer-emoji">${e1}${e2}</span>`;
                 }
                 return cachedEmojis[unitType];
             }
         }
 
         function initOrientation() {
-            if (window.DeviceOrientationEvent && isMobile) {
+            if (window.DeviceOrientationEvent && isMobileDevice) {
                 window.addEventListener('deviceorientation', (event) => {
                     let beta = event.beta || 0;
                     let gamma = event.gamma || 0;
-                    tiltX = Math.max(-MAX_TILT, Math.min(MAX_TILT, gamma)); 
+                    tiltX = Math.max(-MAX_TILT, Math.min(MAX_TILT, gamma));
                     tiltY = Math.max(-MAX_TILT, Math.min(MAX_TILT, beta));
                 });
             } else {
                 document.addEventListener('mousemove', (e) => {
-                    if (isMobile) return;
-                    // 需要重新计算中心点，因为布局可能变化
+                    if (isMobileDevice) return;
+                    // 使用 Canvas 的位置来计算鼠标相对位置
                     const rect = levelCanvas.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2;
                     const centerY = rect.top + rect.height / 2;
-                    const scale = MAX_TILT / 150; 
+                    const scale = MAX_TILT / 100;
                     tiltX = (e.clientX - centerX) * scale;
                     tiltY = (e.clientY - centerY) * scale;
                 });
@@ -617,12 +627,32 @@
             }
         }
 
+        /* --- 修复模糊：处理 devicePixelRatio --- */
         function resizeCanvases() {
-            setupCanvas(particleCanvas);
-            setupCanvas(levelCanvas);
+            const dpr = window.devicePixelRatio || 1;
+            
+            // 全屏粒子画布
+            particleCanvas.width = window.innerWidth * dpr;
+            particleCanvas.height = window.innerHeight * dpr;
+            // 不需要 CSS 缩放，因为是 fullscreen fixed
+            
+            // 水平仪画布：读取 CSS 定义的大小
+            const compStyle = getComputedStyle(document.body);
+            // 这里我们需要读取 :root 或 CSS 中定义的 --level-size
+            // 由于 getComputedStyle 拿不到动态变量值，我们直接用 levelWrapper 的实际大小
+            const wrapper = document.querySelector('.level-wrapper');
+            const size = wrapper.clientWidth; // 例如 160, 200, 240
+            
+            levelCanvas.width = size * dpr;
+            levelCanvas.height = size * dpr;
+            // 注意：这里不需要 ctx.scale(dpr, dpr)，因为我们在绘图逻辑里自己控制尺寸比较灵活，或者统一乘 dpr
+            // 为了简单，我们只改 width/height，绘图坐标系基于 0~width，所以不需要 scale context
+            // 但是为了显示清晰，绘图时的坐标 (cx, cy, radius) 都要基于新的 width/height
         }
 
+        // 初始化执行
         init();
+
     </script>
 </body>
 </html>
