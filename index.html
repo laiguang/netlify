@@ -17,13 +17,11 @@
             --btn-shadow: rgba(226, 125, 96, 0.4);
             
             /* --- 调试配置区：字体大小 --- */
-            /* 手机默认字号 */
             --timer-font-size: clamp(2rem, 8vw, 2.5rem); 
-            /* 容器圆角 */
             --radius: 36px;
         }
 
-        /* 主题定义 (保持不变) */
+        /* 主题定义 */
         [data-theme="summer"] { --bg-color: #95D5B2; --wood-light: #B7E4C7; --wood-dark: #74C69D; --container-bg: #F0FFF4; --primary-color: #40916C; --secondary-color: #B7E4C7; --text-color: #1B4332; --btn-shadow: rgba(64, 145, 108, 0.4); }
         [data-theme="autumn"] { --bg-color: #E29578; --wood-light: #F6BD60; --wood-dark: #dba64e; --container-bg: #FFF8E7; --primary-color: #A65D48; --secondary-color: #F6BD60; --text-color: #5D3A29; --btn-shadow: rgba(166, 93, 72, 0.4); }
         [data-theme="winter"] { --bg-color: #98C1D9; --wood-light: #E0FBFC; --wood-dark: #c2dfe0; --container-bg: #F0F8FF; --primary-color: #3D5A80; --secondary-color: #E0FBFC; --text-color: #293241; --btn-shadow: rgba(61, 90, 128, 0.4); }
@@ -42,7 +40,7 @@
             transition: 0.5s;
         }
 
-        /* --- 核心布局修改：适配策略 --- */
+        /* --- 布局策略 --- */
         .container {
             position: relative;
             z-index: 10;
@@ -52,39 +50,23 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-evenly; /* 改为均匀分布 */
+            justify-content: space-evenly;
             padding: 30px 20px;
             transition: background-color 0.5s;
         }
 
-        /* 手机端 (竖屏优先) */
+        /* 手机端 */
         @media (max-width: 600px) {
-            .container {
-                width: 88vw;          /* 宽度占满 */
-                height: 65vh;         /* 高度基于视口，保证不扁 */
-                min-height: 400px;    /* 最小高度防止内容挤压 */
-                max-height: 600px;
-            }
-            :root {
-                --timer-font-size: clamp(1.8rem, 9vw, 2.5rem); /* 手机端字体 */
-            }
-            .level-wrapper {
-                width: 140px; height: 140px; /* 手机上水平仪稍微小一点 */
-            }
+            .container { width: 88vw; height: 65vh; min-height: 400px; max-height: 600px; }
+            :root { --timer-font-size: clamp(1.8rem, 9vw, 2.5rem); }
+            .level-wrapper { width: 140px; height: 140px; }
         }
 
         /* 平板/桌面端 */
         @media (min-width: 601px) {
-            .container {
-                width: 450px;
-                height: 600px;
-            }
-            :root {
-                --timer-font-size: 3.5rem; /* 电脑端大字体 */
-            }
-            .level-wrapper {
-                width: 180px; height: 180px;
-            }
+            .container { width: 450px; height: 600px; }
+            :root { --timer-font-size: 3.5rem; }
+            .level-wrapper { width: 180px; height: 180px; }
         }
 
         #particle-canvas, .fullscreen-canvas {
@@ -93,13 +75,10 @@
         }
 
         .level-wrapper {
-            position: relative;
-            display: flex; justify-content: center; align-items: center;
-            flex-shrink: 0; /* 防止被压缩 */
+            position: relative; display: flex; justify-content: center; align-items: center; flex-shrink: 0;
         }
         #level-canvas { width: 100%; height: 100%; border-radius: 50%; }
 
-        /* --- 计时器排版修正 --- */
         .timer-display {
             font-size: var(--timer-font-size);
             font-weight: 600;
@@ -112,9 +91,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* 关键修改：禁止换行，防止 Emoji 掉下来 */
             white-space: nowrap; 
             width: 100%;
+            cursor: pointer; /* 提示可点击 */
+            touch-action: manipulation; /* 优化触摸响应，禁止双击缩放 */
         }
 
         .controls {
@@ -152,7 +132,6 @@
         </div>
 
         <div class="timer-display" id="timer">
-            <!-- JS 初始化时会填充内容，这里留空或放占位符 -->
             00 : 00 : 00
         </div>
 
@@ -170,20 +149,10 @@
     </div>
 
     <script>
-        // --- 调试配置区：设备参数 ---
         const DEVICE_CONFIG = {
-            mobile: { 
-                particleBaseSize: 8,  // 手机粒子稍小
-                maxTilt: 20
-            },
-            tablet: { 
-                particleBaseSize: 12, 
-                maxTilt: 20 
-            },
-            desktop: { 
-                particleBaseSize: 16, // 电脑粒子大
-                maxTilt: 20 
-            }
+            mobile: { particleBaseSize: 8, maxTilt: 20 },
+            tablet: { particleBaseSize: 12, maxTilt: 20 },
+            desktop: { particleBaseSize: 16, maxTilt: 20 }
         };
 
         const STATE = { IDLE: 'IDLE', COUNTDOWN: 'COUNTDOWN', RUNNING: 'RUNNING', PAUSED: 'PAUSED' };
@@ -191,7 +160,6 @@
         const EMOJIS = ['😺','😸','😹','😻','😼','😽','😾','😿','🙀'];
         const TOLERANCE = 3;
 
-        // 获取当前设备类型配置
         function getDeviceType() {
             const w = window.innerWidth;
             if (w <= 600) return 'mobile';
@@ -217,7 +185,11 @@
         let countdownInterval = null;
         let tiltX = 0, tiltY = 0;
         let isLevel = false;
-        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // 检测移动设备 (UA检测 + 触控点检测，涵盖 iPad)
+        let isMobileOrTablet = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                               || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+        
         let cachedEmojis = { h: null, m: null, s: null };
         let particles = [];
         let isParticleGenerating = false;
@@ -227,12 +199,11 @@
             resizeCanvases();
             window.addEventListener('resize', resizeCanvases);
             
-            // 解决 Safari Mobile 视口高度变化问题
-            window.addEventListener('resize', () => {
-                // 可选：动态更新vh变量，这里简化处理，依赖CSS媒体查询
-            });
-
             window.addEventListener('keydown', handleKeydown);
+            
+            // --- 新增：手机/平板双击切换主题 ---
+            timerEl.addEventListener('dblclick', handleTimerDoubleTap);
+
             btnPlay.addEventListener('click', handlePlayClick);
             btnPause.addEventListener('click', handlePause);
             btnRestart.addEventListener('click', handleRestart);
@@ -241,19 +212,38 @@
                 if (document.hidden && currentState === STATE.RUNNING) handlePause();
             });
 
-            // 立即执行一次 Timer 渲染，解决“打开显示00”的问题
             updateTimerDisplay();
-
             requestAnimationFrame(renderLoop);
             initOrientation();
         }
 
-        // --- 核心修复：高清 Canvas 与自适应尺寸 ---
+        // --- 新增：双击处理逻辑 ---
+        function handleTimerDoubleTap(e) {
+            // 如果是移动设备或平板（支持触控），则允许切换
+            // 电脑端（鼠标操作）被排除
+            if (isMobileOrTablet) {
+                e.preventDefault(); // 防止选中文本
+                switchTheme();
+            }
+        }
+
+        function handleKeydown(e) {
+            // 电脑端保留空格切换
+            if (e.code === 'Space') {
+                e.preventDefault();
+                switchTheme();
+            }
+        }
+
+        // 统一的主题切换函数
+        function switchTheme() {
+            themeIndex = (themeIndex + 1) % THEMES.length;
+            document.body.setAttribute('data-theme', THEMES[themeIndex]);
+            // 如果粒子被冻结，切换主题时它们会变换形态，增加趣味性
+        }
+
         function resizeCanvases() {
-            // 获取设备像素比，解决模糊问题
             const dpr = window.devicePixelRatio || 1;
-            
-            // 1. 粒子画布 (全屏)
             const w = window.innerWidth;
             const h = window.innerHeight;
             
@@ -262,16 +252,8 @@
             particleCanvas.style.width = w + 'px';
             particleCanvas.style.height = h + 'px';
             
-            // 重置 Context 缩放
             pCtx.setTransform(1, 0, 0, 1, 0, 0); 
             pCtx.scale(dpr, dpr);
-
-            // 2. 水平仪画布 (固定大小但需要清晰)
-            // CSS 中定义了容器大小，这里保持内部渲染分辨率足够高
-            const levelRect = document.querySelector('.level-wrapper').getBoundingClientRect();
-            // 无论CSS多大，我们在JS里画 360x360 的逻辑坐标，然后CSS缩放
-            // 保持原逻辑不变，levelCanvas width=360 属性已在 HTML 设置
-            // 如果要更高清，可以增加 width/height 属性并 scale，但圆环通常 360px 足够清晰
         }
 
         async function handlePlayClick() {
@@ -344,7 +326,7 @@
             handlePause();
             currentState = STATE.IDLE;
             elapsedTime = 0;
-            updateTimerDisplay(); // 立即刷新回 00 (emoji)
+            updateTimerDisplay();
             isParticleFrozen = false;
             isParticleGenerating = false;
             btnPlay.classList.remove('hidden');
@@ -437,8 +419,8 @@
         }
 
         function drawParticles() {
-            const w = window.innerWidth; // 逻辑宽度
-            const h = window.innerHeight; // 逻辑高度
+            const w = window.innerWidth;
+            const h = window.innerHeight;
             const theme = document.body.getAttribute('data-theme');
             const isDark = theme === 'dark';
             const config = DEVICE_CONFIG[getDeviceType()];
@@ -568,7 +550,7 @@
         }
 
         function initOrientation() {
-            if (window.DeviceOrientationEvent && isMobile) {
+            if (window.DeviceOrientationEvent && isMobileOrTablet) {
                 window.addEventListener('deviceorientation', (event) => {
                     let beta = event.beta || 0;
                     let gamma = event.gamma || 0;
@@ -578,7 +560,7 @@
                 });
             } else {
                 document.addEventListener('mousemove', (e) => {
-                    if (isMobile) return;
+                    if (isMobileOrTablet) return;
                     const rect = levelCanvas.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2;
                     const centerY = rect.top + rect.height / 2;
@@ -589,14 +571,6 @@
                     tiltX = dx * scale;
                     tiltY = dy * scale;
                 });
-            }
-        }
-
-        function handleKeydown(e) {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                themeIndex = (themeIndex + 1) % THEMES.length;
-                document.body.setAttribute('data-theme', THEMES[themeIndex]);
             }
         }
 
