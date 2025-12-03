@@ -17,36 +17,26 @@
             --text-color: #5D4037;
             --accent-green: #95D5B2;
             --btn-shadow: rgba(226, 125, 96, 0.4);
-            
-            /* 布局安全区 */
-            --safe-area-inset-bottom: env(safe-area-inset-bottom, 20px);
         }
 
-        [data-theme="summer"] {
-            --bg-color: #95D5B2; --wood-light: #B7E4C7; --wood-dark: #74C69D; --container-bg: #F0FFF4;
-            --primary-color: #40916C; --secondary-color: #B7E4C7; --text-color: #1B4332; --btn-shadow: rgba(64, 145, 108, 0.4);
-        }
-        [data-theme="autumn"] {
-            --bg-color: #E29578; --wood-light: #F6BD60; --wood-dark: #dba64e; --container-bg: #FFF8E7;
-            --primary-color: #A65D48; --secondary-color: #F6BD60; --text-color: #5D3A29; --btn-shadow: rgba(166, 93, 72, 0.4);
-        }
-        [data-theme="winter"] {
-            --bg-color: #98C1D9; --wood-light: #E0FBFC; --wood-dark: #c2dfe0; --container-bg: #F0F8FF;
-            --primary-color: #3D5A80; --secondary-color: #E0FBFC; --text-color: #293241; --btn-shadow: rgba(61, 90, 128, 0.4);
-        }
-        [data-theme="dark"] {
-            --bg-color: #293241; --wood-light: #3D5A80; --wood-dark: #2b4566; --container-bg: #222831;
-            --primary-color: #E0FBFC; --secondary-color: rgba(255, 255, 255, 0.1); --text-color: #E0FBFC; --btn-shadow: rgba(0, 0, 0, 0.5);
-        }
+        /* 主题定义 (保持不变) */
+        [data-theme="summer"] { --bg-color: #95D5B2; --wood-light: #B7E4C7; --wood-dark: #74C69D; --container-bg: #F0FFF4; --primary-color: #40916C; --secondary-color: #B7E4C7; --text-color: #1B4332; --btn-shadow: rgba(64, 145, 108, 0.4); }
+        [data-theme="autumn"] { --bg-color: #E29578; --wood-light: #F6BD60; --wood-dark: #dba64e; --container-bg: #FFF8E7; --primary-color: #A65D48; --secondary-color: #F6BD60; --text-color: #5D3A29; --accent-green: #81B29A; --btn-shadow: rgba(166, 93, 72, 0.4); }
+        [data-theme="winter"] { --bg-color: #98C1D9; --wood-light: #E0FBFC; --wood-dark: #c2dfe0; --container-bg: #F0F8FF; --primary-color: #3D5A80; --secondary-color: #E0FBFC; --text-color: #293241; --accent-green: #98C1D9; --btn-shadow: rgba(61, 90, 128, 0.4); }
+        [data-theme="dark"] { --bg-color: #293241; --wood-light: #3D5A80; --wood-dark: #2b4566; --container-bg: #222831; --primary-color: #E0FBFC; --secondary-color: rgba(255, 255, 255, 0.1); --text-color: #E0FBFC; --accent-green: #98C1D9; --btn-shadow: rgba(0, 0, 0, 0.5); }
 
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         body {
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             width: 100vw;
-            /* 使用 dvh 适应移动端浏览器动态地址栏 */
-            height: 100dvh; 
-            overflow: hidden;
+            height: 100vh;
+            overflow: hidden; /* 禁止页面滚动 */
             font-family: 'Fredoka', sans-serif;
             background-color: var(--bg-color);
             transition: background-color 0.5s;
@@ -55,134 +45,149 @@
             align-items: center;
         }
 
-        /* 木纹层：稍微留出边距 */
         .wood-layer {
             position: absolute;
-            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            top: 2vmin; left: 2vmin; right: 2vmin; bottom: 2vmin;
             background: repeating-linear-gradient(45deg, var(--wood-light), var(--wood-light) 10px, var(--wood-dark) 10px, var(--wood-dark) 20px);
-            border-radius: 20px;
+            border-radius: 30px;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
             z-index: 1;
+            transition: 0.5s;
         }
 
-        /* 
-           主容器布局核心修改：
-           1. 使用 Flex column 让内部元素自动分配高度
-           2. 宽高使用 vw/dvh 结合 max限制，保证不溢出屏幕
-        */
+        /* --- 核心修改：容器适配 --- */
         .container {
             position: relative;
             z-index: 10;
-            /* 宽度：在手机上占满，电脑上限制 */
-            width: 90vw; 
-            max-width: 450px; 
-            /* 高度：留出上下空间，但不超过视口 */
-            height: 85dvh; 
-            max-height: 800px; 
             
+            /* 宽度适配：手机占宽一些，电脑占窄一些 */
+            width: 85vw;
+            max-width: 420px;
+            
+            /* 高度适配：利用 vh 和 max-height 防止溢出 */
+            height: auto;
+            min-height: 50vh;
+            max-height: 80vh; 
+            aspect-ratio: 9/16; /* 尝试保持竖屏比例，但不强制 */
+
             background-color: var(--container-bg);
             border-radius: 40px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             
+            /* 布局核心：均匀分布，防止挤压 */
             display: flex;
             flex-direction: column;
+            justify-content: space-evenly; 
             align-items: center;
-            justify-content: space-evenly; /* 均匀分布 */
             
             padding: 20px;
             transition: background-color 0.5s;
         }
+        
+        /* 当屏幕非常矮时（横屏），容器改为横向排列或者允许滚动？
+           本方案暂保持竖向但压缩间距 */
+        @media (max-height: 600px) {
+            .container {
+                flex-direction: row;
+                width: 90vw;
+                max-width: 600px;
+                height: 80vh;
+                aspect-ratio: auto;
+            }
+            .level-wrapper { flex: 1; height: 100% !important; }
+            .right-panel { display: flex; flex-direction: column; flex: 1; justify-content: center; align-items: center; }
+        }
 
         #particle-canvas {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-            pointer-events: none; z-index: 20;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 20;
         }
 
-        /* --- 1. 上部：水平仪 (自适应) --- */
-        /* 使用 flex-grow 允许它占据剩余空间，但不超过容器限制 */
+        /* --- 上部：水平仪 --- */
         .level-wrapper {
-            flex: 1; 
+            /* 弹性大小，根据屏幕剩余空间伸缩，最大不超过宽度的100% */
+            flex: 0 1 auto;
             width: 100%;
-            min-height: 0; /* 允许 flex 子项缩小 */
+            /* 限制最大高度，防止把下面的字挤出去 */
+            max-height: 35vh; 
+            aspect-ratio: 1 / 1;
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
-            /* 限制水平仪最大高度，防止把按钮挤出去 */
-            max-height: 40vh; 
         }
 
-        /* Canvas 保持正方形，利用 object-fit 缩放 */
         #level-canvas {
-            max-width: 100%;
-            max-height: 100%;
-            aspect-ratio: 1 / 1;
-            /* 确保 canvas 不会拉伸变形 */
+            /* 让 Canvas 100% 填充 wrapper，实际渲染分辨率在 JS 中控制 */
+            width: 100%;
+            height: 100%;
             object-fit: contain; 
+            border-radius: 50%;
         }
 
-        /* --- 2. 中部：计时器 (绝对防换行) --- */
+        /* --- 中部：计时器 --- */
         .timer-display {
-            flex: 0 0 auto; /* 不允许伸缩 */
-            width: 100%;
-            text-align: center;
-            color: var(--text-color);
+            /* [调试标记] 字体大小调整区 */
+            /* 旧值: clamp(32px, 10vmin, 64px) -> 太大了 */
+            /* 新值: 最小 20px，中间值为视口宽度的 7%，最大 36px */
+            font-size: clamp(20px, 7vw, 36px);
+            
             font-weight: 600;
+            color: var(--text-color);
+            letter-spacing: 1px;
+            text-align: center;
             font-variant-numeric: tabular-nums;
             
-            /* 核心修复：强制不换行 */
-            white-space: nowrap;
-            
-            /* 调试：计时器字号 */
-            /* 逻辑：取视口宽度的13% 或 视口高度的6% 中的较小值 */
-            /* 这样保证横屏竖屏、无论多窄的手机都能显示 */
-            font-size: min(13vw, 6vh); 
-            
+            /* 确保有足够的点击区域但不占用太多高度 */
             padding: 10px 0;
-            letter-spacing: 1px;
+            flex-shrink: 0; 
+            
+            /* [调试标记] 禁止换行，强制一行显示 */
+            white-space: nowrap;
+            width: 100%;
+            overflow: hidden; /* 防止极端情况溢出 */
+            text-overflow: clip;
+            
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
         }
 
-        /* --- 3. 下部：按钮区 --- */
+        /* --- 下部：按钮区 --- */
         .controls {
-            flex: 0 0 auto; /* 固定高度区域 */
+            flex-shrink: 0; /* 防止按钮被压扁 */
             display: flex;
-            gap: 20px;
-            justify-content: center;
+            gap: 15px;
+            height: auto;
+            padding: 10px 0;
             align-items: center;
+            justify-content: center;
             width: 100%;
-            height: 15vh; /* 给按钮足够的热区空间 */
-            max-height: 100px;
-            padding-bottom: 10px;
         }
 
         .btn {
-            /* 按钮大小随视口缩放，但不超过 80px */
-            width: min(18vw, 80px);
-            height: min(18vw, 80px);
-            border-radius: 35%; /* 完美的 Squircle */
+            /* 按钮尺寸也稍微改小一点适配手机 */
+            width: clamp(60px, 15vw, 80px);
+            height: clamp(60px, 15vw, 80px);
+            border-radius: 30%;
             border: none;
             background-color: var(--secondary-color);
             color: var(--primary-color);
             cursor: pointer;
-            box-shadow: 0 min(1.5vw, 6px) 0 var(--btn-shadow);
-            transition: all 0.1s;
-            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 0 var(--btn-shadow);
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             position: relative;
-            font-size: min(6vw, 24px);
-            font-weight: bold;
         }
 
-        .btn:active {
-            transform: translateY(min(1.5vw, 6px));
-            box-shadow: 0 0 0 var(--btn-shadow);
-        }
-
-        .btn svg { width: 60%; height: 60%; fill: currentColor; }
+        .btn svg { width: 50%; height: 50%; fill: currentColor; pointer-events: none; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--btn-shadow); }
         .btn.hidden { display: none; }
-        .btn-text-mode { font-size: min(8vw, 28px); color: var(--primary-color); }
+        .btn-text-mode { font-size: 1.5rem; color: var(--primary-color); font-weight: bold; }
 
     </style>
 </head>
@@ -192,38 +197,36 @@
     <canvas id="particle-canvas"></canvas>
 
     <div class="container">
-        <!-- 1. 水平仪 -->
+        <!-- 上部：水平仪 -->
         <div class="level-wrapper">
-            <!-- 增加分辨率以保证在 Retina 屏幕清晰，通过 CSS 缩小显示 -->
-            <canvas id="level-canvas" width="600" height="600"></canvas>
+            <canvas id="level-canvas"></canvas>
         </div>
 
-        <!-- 2. 计时器 -->
-        <div class="timer-display" id="timer">
-            00 : 00 : 00
-        </div>
+        <!-- 针对横屏布局的右侧容器（CSS触发时生效） -->
+        <div class="right-panel">
+            <!-- 中部：计时器 -->
+            <div class="timer-display" id="timer">
+                00 : 00 : 00
+            </div>
 
-        <!-- 3. 按钮 -->
-        <div class="controls">
-            <button class="btn" id="btn-play">
-                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-            <button class="btn hidden" id="btn-pause">
-                <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            </button>
-            <button class="btn hidden" id="btn-restart">
-                <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 5.52 4.48 10 10 10s10-4.48 10-10S19.52 5 12 5z"/></svg>
-            </button>
+            <!-- 下部：按钮 -->
+            <div class="controls">
+                <button class="btn" id="btn-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+                <button class="btn hidden" id="btn-pause"><svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
+                <button class="btn hidden" id="btn-restart"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 5.52 4.48 10 10 10s10-4.48 10-10S19.52 5 12 5z"/></svg></button>
+            </div>
         </div>
     </div>
 
     <script>
+        // 常量与状态
         const STATE = { IDLE: 'IDLE', COUNTDOWN: 'COUNTDOWN', RUNNING: 'RUNNING', PAUSED: 'PAUSED' };
         const THEMES = ['spring', 'summer', 'autumn', 'winter', 'dark'];
         const EMOJIS = ['😺','😸','😹','😻','😼','😽','😾','😿','🙀'];
-        const TOLERANCE = 3;
+        const TOLERANCE = 3; 
         const MAX_TILT = 20;
 
+        // 元素获取
         const timerEl = document.getElementById('timer');
         const btnPlay = document.getElementById('btn-play');
         const btnPause = document.getElementById('btn-pause');
@@ -233,25 +236,36 @@
         const lCtx = levelCanvas.getContext('2d');
         const pCtx = particleCanvas.getContext('2d');
 
+        // 变量
         let currentState = STATE.IDLE;
         let themeIndex = 0;
         let startTime = 0;
         let elapsedTime = 0;
         let timerInterval = null;
-        let countdownInterval = null;
         let countdownValue = 5;
+        let countdownInterval = null;
         let tiltX = 0, tiltY = 0;
         let isLevel = false;
         let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
+        // Emoji 缓存
         let cachedEmojis = { h: null, m: null, s: null };
-        
-        // 粒子相关
         let particles = [];
         let isParticleGenerating = false;
         let isParticleFrozen = false;
-        // 调试：粒子尺寸缩放比例
-        let particleScale = 1; 
+
+        // [优化标记] 解决 Canvas 在高清屏模糊的问题
+        function setupCanvas(canvas) {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            // 设置实际渲染像素
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            // 归一化坐标系
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            return { width: rect.width, height: rect.height };
+        }
 
         function init() {
             resizeCanvases();
@@ -261,45 +275,22 @@
             btnPlay.addEventListener('click', handlePlayClick);
             btnPause.addEventListener('click', handlePause);
             btnRestart.addEventListener('click', handleRestart);
-
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && currentState === STATE.RUNNING) handlePause();
             });
 
-            // 修复：初始化时立即执行一次 Emoji 随机，防止显示数字 "00"
-            randomizeInitEmojis();
-            updateTimerDisplay();
-
             requestAnimationFrame(renderLoop);
             initOrientation();
+
+            // [核心修改] 初始化时立即执行一次 Emoji 替换，防止显示 00:00:00
+            updateTimerDisplay();
         }
 
-        // 预先随机化 Emoji
-        function randomizeInitEmojis() {
-            ['h', 'm', 's'].forEach(unit => {
-                const e1 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-                const e2 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-                cachedEmojis[unit] = e1 + e2;
-            });
-        }
-
-        function resizeCanvases() {
-            // 粒子画布全屏
-            particleCanvas.width = window.innerWidth;
-            particleCanvas.height = window.innerHeight;
-            
-            // 调试：根据屏幕宽度计算粒子缩放比例
-            // 如果屏幕宽度小于 600px (手机)，比例设为 0.6，否则为 1
-            particleScale = window.innerWidth < 600 ? 0.6 : 1.0;
-        }
-
+        // --- 逻辑控制 ---
         async function handlePlayClick() {
             if (currentState === STATE.IDLE || currentState === STATE.PAUSED) {
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    try {
-                        const response = await DeviceOrientationEvent.requestPermission();
-                        if (response !== 'granted') return alert('需要权限');
-                    } catch (e) { console.error(e); }
+                    try { await DeviceOrientationEvent.requestPermission(); } catch (e) { console.error(e); }
                 }
                 startCountdown();
             }
@@ -320,9 +311,14 @@
                     btnPlay.innerHTML = `<span class="btn-text-mode">${countdownValue}</span>`;
                 } else {
                     clearInterval(countdownInterval);
-                    if (isLevel) startTimer(); else handlePause();
+                    checkStartConditions();
                 }
             }, 1000);
+        }
+
+        function checkStartConditions() {
+            if (isLevel) startTimer();
+            else handlePause(); 
         }
 
         function startTimer() {
@@ -360,19 +356,18 @@
             handlePause();
             currentState = STATE.IDLE;
             elapsedTime = 0;
-            // 重置为随机 Emoji
-            randomizeInitEmojis();
+            // 重置 Emoji 缓存，让它下次重新随机
+            cachedEmojis = { h: null, m: null, s: null }; 
             updateTimerDisplay();
-            
-            isParticleFrozen = false; 
+            isParticleFrozen = false;
             isParticleGenerating = false;
+            particles = []; // 清空粒子
             btnPlay.classList.remove('hidden');
             btnRestart.classList.add('hidden');
             btnPause.classList.add('hidden');
         }
 
-        /* --- 渲染逻辑 --- */
-
+        // --- 渲染逻辑 ---
         function renderLoop() {
             drawLevel();
             drawParticles();
@@ -380,15 +375,20 @@
         }
 
         function drawLevel() {
-            // 使用 canvas 内部固定分辨率 (600x600) 绘制，保证清晰度
-            const w = levelCanvas.width;
-            const h = levelCanvas.height;
+            // 获取 CSS 布局后的实际尺寸
+            const rect = levelCanvas.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
             const cx = w / 2;
             const cy = h / 2;
-            const radius = w / 2 - 20; 
-            const maxOffset = radius * 0.8;
+            const radius = Math.min(w, h) / 2 - 4; // 动态半径
+            const maxOffset = radius * 0.7; 
 
-            lCtx.clearRect(0, 0, w, h);
+            // 清除画布 (注意：这里使用 resetTransform 清除是因为 setupCanvas 做了 scale)
+            lCtx.save();
+            lCtx.setTransform(1, 0, 0, 1, 0, 0);
+            lCtx.clearRect(0, 0, levelCanvas.width, levelCanvas.height);
+            lCtx.restore();
 
             let dx = (tiltX / MAX_TILT) * maxOffset;
             let dy = (tiltY / MAX_TILT) * maxOffset;
@@ -402,76 +402,92 @@
             const degDiff = Math.sqrt(tiltX*tiltX + tiltY*tiltY);
             isLevel = degDiff <= TOLERANCE;
 
-            const themeColor = getComputedStyle(document.body).getPropertyValue('--accent-green').trim();
-            const mainColor = isLevel ? themeColor : '#E0E0E0';
+            const gray = '#E0E0E0';
             const red = '#FF6B6B';
+            const green = getComputedStyle(document.body).getPropertyValue('--accent-green').trim() || '#95D5B2';
+            const mainColor = isLevel ? green : gray;
 
-            // 外圈
-            lCtx.lineWidth = 12; // 加粗线条以适应 Retina 缩放
+            // 绘制
+            lCtx.lineWidth = 6;
             lCtx.strokeStyle = mainColor;
-            lCtx.beginPath(); lCtx.arc(cx, cy, radius, 0, Math.PI * 2); lCtx.stroke();
+            lCtx.beginPath();
+            lCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            lCtx.stroke();
 
             if (isLevel) {
-                lCtx.lineWidth = 8;
+                lCtx.lineWidth = 4;
                 lCtx.strokeStyle = mainColor + '66';
-                lCtx.beginPath(); lCtx.arc(cx, cy, radius - 16, 0, Math.PI * 2); lCtx.stroke();
+                lCtx.beginPath();
+                lCtx.arc(cx, cy, radius - 8, 0, Math.PI * 2);
+                lCtx.stroke();
             }
 
             if (!isLevel) {
-                lCtx.lineWidth = 4;
+                // 绘制十字
+                lCtx.lineWidth = 2;
                 lCtx.strokeStyle = '#f0f0f0';
                 lCtx.beginPath();
-                lCtx.moveTo(cx - radius + 40, cy); lCtx.lineTo(cx + radius - 40, cy);
-                lCtx.moveTo(cx, cy - radius + 40); lCtx.lineTo(cx, cy + radius - 40);
+                lCtx.moveTo(cx - radius + 20, cy); lCtx.lineTo(cx + radius - 20, cy);
+                lCtx.moveTo(cx, cy - radius + 20); lCtx.lineTo(cx, cy + radius - 20);
                 lCtx.stroke();
-
+                
                 // 误差圈
                 const toleranceRadius = (TOLERANCE / MAX_TILT) * maxOffset;
-                lCtx.beginPath(); lCtx.setLineDash([10, 10]);
+                lCtx.beginPath();
+                lCtx.setLineDash([5, 5]);
                 lCtx.strokeStyle = red;
-                lCtx.lineWidth = 4;
-                lCtx.arc(cx, cy, toleranceRadius, 0, Math.PI * 2); lCtx.stroke();
+                lCtx.lineWidth = 2;
+                lCtx.arc(cx, cy, toleranceRadius, 0, Math.PI * 2);
+                lCtx.stroke();
                 lCtx.setLineDash([]);
             }
 
             const bubbleX = cx + dx;
             const bubbleY = cy + dy;
+
             if (isLevel) {
-                lCtx.lineWidth = 8;
-                lCtx.strokeStyle = themeColor;
-                lCtx.beginPath(); lCtx.arc(bubbleX, bubbleY, 30, 0, Math.PI * 2); lCtx.stroke();
+                lCtx.lineWidth = 4;
+                lCtx.strokeStyle = green;
+                lCtx.beginPath();
+                lCtx.arc(bubbleX, bubbleY, radius * 0.1, 0, Math.PI * 2);
+                lCtx.stroke();
             } else {
                 lCtx.fillStyle = red;
-                lCtx.beginPath(); lCtx.arc(bubbleX, bubbleY, 24, 0, Math.PI * 2); lCtx.fill();
+                lCtx.beginPath();
+                lCtx.arc(bubbleX, bubbleY, radius * 0.08, 0, Math.PI * 2);
+                lCtx.fill();
             }
         }
 
         function drawParticles() {
-            const w = particleCanvas.width;
-            const h = particleCanvas.height;
+            const rect = particleCanvas.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
             const theme = document.body.getAttribute('data-theme');
             const isDark = theme === 'dark';
 
-            pCtx.clearRect(0, 0, w, h);
+            pCtx.save();
+            pCtx.setTransform(1, 0, 0, 1, 0, 0);
+            pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            pCtx.restore();
 
             if (isParticleGenerating && !isParticleFrozen) {
                 if (Math.random() < 0.1) {
-                    // 调试：调整粒子基础大小
                     const sizeBase = Math.random();
-                    let rawSize = 15; 
-                    if (sizeBase < 0.25) rawSize = 10;
-                    else if (sizeBase < 0.75) rawSize = 25;
-                    else rawSize = 15;
-                    
-                    // 应用缩放系数
-                    const finalSize = rawSize * particleScale;
+                    // [调试标记] 粒子尺寸调整区
+                    // 粒子基准尺寸 = 屏幕宽度的 1% ~ 2%，防止在大屏和小屏差异过大
+                    const baseScale = w * 0.015; 
+                    let sizeMultiplier = 1;
+                    if (sizeBase < 0.25) sizeMultiplier = 0.6;
+                    else if (sizeBase < 0.75) sizeMultiplier = 1.2;
+                    else sizeMultiplier = 0.6;
 
                     particles.push({
                         x: Math.random() * w,
                         y: isDark ? h + 20 : -20,
                         vx: (Math.random() - 0.5) * 2,
                         vy: isDark ? -(Math.random() * 2 + 1) : (Math.random() * 2 + 1),
-                        size: finalSize,
+                        size: baseScale * sizeMultiplier, 
                         rotation: Math.random() * 360,
                         type: theme
                     });
@@ -499,21 +515,32 @@
         function drawThemeShape(ctx, theme, size) {
             ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary-color');
             ctx.strokeStyle = ctx.fillStyle;
+            
+            // 确保尺寸不小于1像素
+            size = Math.max(size, 2); 
+
             switch(theme) {
-                case 'spring': ctx.beginPath(); ctx.ellipse(0, 0, size/2, size, 0, 0, Math.PI*2); ctx.fill(); break;
-                case 'summer': ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.stroke(); break;
-                case 'autumn': ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size/1.5, 0); ctx.lineTo(0, size); ctx.lineTo(-size/1.5, 0); ctx.closePath(); ctx.fill(); break;
-                case 'winter': ctx.fillStyle = '#FFFFFF'; ctx.shadowBlur = 5; ctx.shadowColor = '#FFFFFF'; ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0; break;
-                case 'dark': ctx.fillStyle = '#F4D35E'; ctx.shadowBlur = 10; ctx.shadowColor = '#F4D35E'; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1; break;
+                case 'spring': 
+                    ctx.beginPath(); ctx.ellipse(0, 0, size/2, size, 0, 0, Math.PI*2); ctx.fill(); break;
+                case 'summer': 
+                    ctx.lineWidth = size/5; ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.stroke(); 
+                    ctx.beginPath(); ctx.arc(size/6, -size/6, size/10, 0, Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.fill(); break;
+                case 'autumn': 
+                    ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size/1.5, 0); ctx.lineTo(0, size); ctx.lineTo(-size/1.5, 0); ctx.fill(); break;
+                case 'winter': 
+                    ctx.fillStyle='#FFF'; ctx.shadowBlur=5; ctx.shadowColor='#FFF'; ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur=0; break;
+                case 'dark': 
+                    ctx.fillStyle='#F4D35E'; ctx.shadowBlur=10; ctx.shadowColor='#F4D35E'; ctx.globalAlpha=0.8; ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0; break;
             }
         }
 
+        // --- 计时器格式化 ---
         function updateTimerDisplay() {
             const totalSeconds = Math.floor(elapsedTime / 1000);
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60);
             const s = totalSeconds % 60;
-            timerEl.innerHTML = `<span>${formatUnit(h,'h')}</span> : <span>${formatUnit(m,'m')}</span> : <span>${formatUnit(s,'s')}</span>`;
+            timerEl.textContent = `${formatUnit(h, 'h')} : ${formatUnit(m, 'm')} : ${formatUnit(s, 's')}`;
         }
 
         function formatUnit(val, unitType) {
@@ -530,12 +557,13 @@
             }
         }
 
+        // --- 传感器 ---
         function initOrientation() {
             if (window.DeviceOrientationEvent && isMobile) {
                 window.addEventListener('deviceorientation', (event) => {
                     let beta = event.beta || 0;
                     let gamma = event.gamma || 0;
-                    tiltX = Math.max(-MAX_TILT, Math.min(MAX_TILT, gamma));
+                    tiltX = Math.max(-MAX_TILT, Math.min(MAX_TILT, gamma)); 
                     tiltY = Math.max(-MAX_TILT, Math.min(MAX_TILT, beta));
                 });
             } else {
@@ -544,11 +572,9 @@
                     const rect = levelCanvas.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2;
                     const centerY = rect.top + rect.height / 2;
-                    const dx = e.clientX - centerX;
-                    const dy = e.clientY - centerY;
-                    const scale = MAX_TILT / 100;
-                    tiltX = dx * scale;
-                    tiltY = dy * scale;
+                    const scale = MAX_TILT / 150; 
+                    tiltX = (e.clientX - centerX) * scale;
+                    tiltY = (e.clientY - centerY) * scale;
                 });
             }
         }
@@ -559,6 +585,12 @@
                 themeIndex = (themeIndex + 1) % THEMES.length;
                 document.body.setAttribute('data-theme', THEMES[themeIndex]);
             }
+        }
+
+        function resizeCanvases() {
+            setupCanvas(particleCanvas);
+            // 水平仪 Canvas 每次 resize 重新 setup 以适应 flex 变化
+            setupCanvas(levelCanvas);
         }
 
         init();
