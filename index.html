@@ -16,12 +16,10 @@
             --text-color: #5D4037;
             --btn-shadow: rgba(226, 125, 96, 0.4);
             
-            /* --- 调试配置区：字体大小 --- */
             --timer-font-size: clamp(2rem, 8vw, 2.5rem); 
             --radius: 36px;
         }
 
-        /* 主题定义 */
         [data-theme="summer"] { --bg-color: #95D5B2; --wood-light: #B7E4C7; --wood-dark: #74C69D; --container-bg: #F0FFF4; --primary-color: #40916C; --secondary-color: #B7E4C7; --text-color: #1B4332; --btn-shadow: rgba(64, 145, 108, 0.4); }
         [data-theme="autumn"] { --bg-color: #E29578; --wood-light: #F6BD60; --wood-dark: #dba64e; --container-bg: #FFF8E7; --primary-color: #A65D48; --secondary-color: #F6BD60; --text-color: #5D3A29; --btn-shadow: rgba(166, 93, 72, 0.4); }
         [data-theme="winter"] { --bg-color: #98C1D9; --wood-light: #E0FBFC; --wood-dark: #c2dfe0; --container-bg: #F0F8FF; --primary-color: #3D5A80; --secondary-color: #E0FBFC; --text-color: #293241; --btn-shadow: rgba(61, 90, 128, 0.4); }
@@ -29,15 +27,13 @@
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        /* 关键修改：禁止默认触摸行为，防止双击缩放干扰 */
-        html, body {
-            margin: 0; padding: 0; width: 100vw; height: 100vh; 
-            overflow: hidden; 
+        body { 
+            margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; 
             font-family: 'Fredoka', sans-serif; 
-            background-color: var(--bg-color); 
-            transition: background-color 0.5s; 
-            display: flex; justify-content: center; align-items: center;
-            touch-action: none; /* 全局禁止双击缩放 */
+            background-color: var(--bg-color); transition: background-color 0.5s; 
+            display: flex; justify-content: center; align-items: center; 
+            /* 关键：防止全局层面的双击缩放行为干扰 */
+            touch-action: none;
         }
 
         .wood-layer {
@@ -64,14 +60,12 @@
             transition: background-color 0.5s;
         }
 
-        /* 手机端 */
         @media (max-width: 600px) {
             .container { width: 88vw; height: 65vh; min-height: 400px; max-height: 600px; }
             :root { --timer-font-size: clamp(1.8rem, 9vw, 2.5rem); }
             .level-wrapper { width: 140px; height: 140px; }
         }
 
-        /* 平板/桌面端 */
         @media (min-width: 601px) {
             .container { width: 450px; height: 600px; }
             :root { --timer-font-size: 3.5rem; }
@@ -123,6 +117,7 @@
             transition: all 0.15s;
             display: flex; justify-content: center; align-items: center;
             position: relative;
+            touch-action: manipulation; /* 优化按钮点击 */
         }
         .btn svg { width: 55%; height: 55%; fill: currentColor; pointer-events: none; }
         .btn:active { transform: translateY(6px); box-shadow: 0 0 0 var(--btn-shadow); }
@@ -158,6 +153,7 @@
     </div>
 
     <script>
+        // --- 配置 ---
         const DEVICE_CONFIG = {
             mobile: { particleBaseSize: 8, maxTilt: 20 },
             tablet: { particleBaseSize: 12, maxTilt: 20 },
@@ -169,13 +165,7 @@
         const EMOJIS = ['😺','😸','😹','😻','😼','😽','😾','😿','🙀'];
         const TOLERANCE = 3;
 
-        function getDeviceType() {
-            const w = window.innerWidth;
-            if (w <= 600) return 'mobile';
-            if (w <= 1024) return 'tablet';
-            return 'desktop';
-        }
-
+        // --- 变量 ---
         const timerEl = document.getElementById('timer');
         const btnPlay = document.getElementById('btn-play');
         const btnPause = document.getElementById('btn-pause');
@@ -203,28 +193,15 @@
         let isParticleGenerating = false;
         let isParticleFrozen = false;
 
-        // --- 核心修复：引入时间变量 ---
+        // *** 核心修改：时间控制变量 ***
         let lastFrameTime = 0;
+        const TARGET_FPS = 60; // 我们设计物理效果时的基准 FPS
 
         function init() {
-            // 初始化 Canvas
             resizeCanvases();
-            // 防抖 resize
-            let resizeTimeout;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(() => {
-                    // 仅当尺寸变化较大时才重置（忽略手机浏览器地址栏收缩带来的微小变化）
-                    if (Math.abs(window.innerWidth - particleCanvas.width/window.devicePixelRatio) > 50 ||
-                        Math.abs(window.innerHeight - particleCanvas.height/window.devicePixelRatio) > 100) {
-                        resizeCanvases();
-                    }
-                }, 100);
-            });
-            
+            window.addEventListener('resize', resizeCanvases);
             window.addEventListener('keydown', handleKeydown);
             timerEl.addEventListener('dblclick', handleTimerDoubleTap);
-
             btnPlay.addEventListener('click', handlePlayClick);
             btnPause.addEventListener('click', handlePause);
             btnRestart.addEventListener('click', handleRestart);
@@ -234,47 +211,65 @@
             });
 
             updateTimerDisplay();
-            
+            initOrientation();
+
             // 启动循环
             lastFrameTime = performance.now();
             requestAnimationFrame(renderLoop);
+        }
+
+        // --- 核心算法修改：基于时间的渲染循环 ---
+        function renderLoop(currentTime) {
+            // 计算两帧之间的时间差 (秒)
+            // 如果是第一次运行，deltaTime 为 0
+            const deltaTime = (currentTime - lastFrameTime) / 1000;
+            lastFrameTime = currentTime;
+
+            // 限制最大时间差 (0.1秒)，防止切换 Tab 后回来粒子瞬移/跳跃
+            const safeDeltaTime = Math.min(deltaTime, 0.1);
+
+            drawLevel();
+            drawParticles(safeDeltaTime); // 将时间差传入粒子系统
             
-            initOrientation();
+            requestAnimationFrame(renderLoop);
         }
 
-        function handleTimerDoubleTap(e) {
-            if (isMobileOrTablet) {
-                e.preventDefault(); 
-                switchTheme();
-            }
-        }
-
-        function handleKeydown(e) {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                switchTheme();
-            }
-        }
-
-        function switchTheme() {
-            themeIndex = (themeIndex + 1) % THEMES.length;
-            document.body.setAttribute('data-theme', THEMES[themeIndex]);
+        function getDeviceType() {
+            const w = window.innerWidth;
+            if (w <= 600) return 'mobile';
+            if (w <= 1024) return 'tablet';
+            return 'desktop';
         }
 
         function resizeCanvases() {
             const dpr = window.devicePixelRatio || 1;
             const w = window.innerWidth;
             const h = window.innerHeight;
-            
             particleCanvas.width = w * dpr;
             particleCanvas.height = h * dpr;
             particleCanvas.style.width = w + 'px';
             particleCanvas.style.height = h + 'px';
-            
             pCtx.setTransform(1, 0, 0, 1, 0, 0); 
             pCtx.scale(dpr, dpr);
         }
 
+        // ... [双击处理、按键处理、计时器逻辑 保持不变] ...
+        function handleTimerDoubleTap(e) {
+            if (isMobileOrTablet) {
+                e.preventDefault();
+                switchTheme();
+            }
+        }
+        function handleKeydown(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                switchTheme();
+            }
+        }
+        function switchTheme() {
+            themeIndex = (themeIndex + 1) % THEMES.length;
+            document.body.setAttribute('data-theme', THEMES[themeIndex]);
+        }
         async function handlePlayClick() {
             if (currentState === STATE.IDLE || currentState === STATE.PAUSED) {
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -286,7 +281,6 @@
                 startCountdown();
             }
         }
-
         function startCountdown() {
             currentState = STATE.COUNTDOWN;
             countdownValue = 5;
@@ -305,12 +299,10 @@
                 }
             }, 1000);
         }
-
         function checkStartConditions() {
             if (isLevel) startTimer();
             else handlePause();
         }
-
         function startTimer() {
             currentState = STATE.RUNNING;
             startTime = Date.now() - elapsedTime;
@@ -326,7 +318,6 @@
                 if (!isLevel) handlePause();
             }, 100);
         }
-
         function handlePause() {
             if (currentState === STATE.RUNNING || currentState === STATE.COUNTDOWN) {
                 currentState = STATE.PAUSED;
@@ -340,7 +331,6 @@
                 isParticleFrozen = true;
             }
         }
-
         function handleRestart() {
             handlePause();
             currentState = STATE.IDLE;
@@ -352,22 +342,28 @@
             btnRestart.classList.add('hidden');
             btnPause.classList.add('hidden');
         }
-
-        // --- 核心修复：基于 DeltaTime 的渲染循环 ---
-        function renderLoop(currentTime) {
-            // 计算时间差 (单位：秒)
-            // 如果 lastFrameTime 是 0 (第一次运行)，设 dt 为 1/60 (约0.016)
-            const dt = lastFrameTime ? (currentTime - lastFrameTime) / 1000 : 0.016;
-            lastFrameTime = currentTime;
-
-            // 限制 dt 最大值，防止切换标签回来后 dt 过大导致粒子瞬移
-            const safeDt = Math.min(dt, 0.1); 
-
-            drawLevel();
-            drawParticles(safeDt); // 传入时间差
-
-            requestAnimationFrame(renderLoop);
+        function updateTimerDisplay() {
+            const totalSeconds = Math.floor(elapsedTime / 1000);
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            timerEl.textContent = `${formatUnit(h, 'h')} : ${formatUnit(m, 'm')} : ${formatUnit(s, 's')}`;
         }
+        function formatUnit(val, unitType) {
+            if (val !== 0) {
+                cachedEmojis[unitType] = null;
+                return val.toString().padStart(2, '0');
+            } else {
+                if (!cachedEmojis[unitType]) {
+                    const e1 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+                    const e2 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+                    cachedEmojis[unitType] = e1 + e2;
+                }
+                return cachedEmojis[unitType];
+            }
+        }
+
+        // --- 绘图函数 ---
 
         function drawLevel() {
             const w = levelCanvas.width;
@@ -447,23 +443,28 @@
             }
         }
 
-        // --- 核心修复：粒子使用 dt 更新 ---
+        // *** 核心修改：接收 dt (秒) 参数 ***
         function drawParticles(dt) {
-            const w = window.innerWidth;
+            const w = window.innerWidth; 
             const h = window.innerHeight;
             const theme = document.body.getAttribute('data-theme');
             const isDark = theme === 'dark';
             const config = DEVICE_CONFIG[getDeviceType()];
             const baseSize = config.particleBaseSize;
+            
+            // 时间缩放因子：将速度标准化到 60fps
+            // 如果屏幕是 120Hz, dt 大约是 1/120s, timeScale 就是 0.5。
+            // 之前的速度是针对一帧的，所以要乘以 60 * dt
+            const timeScale = dt * TARGET_FPS; 
 
             pCtx.clearRect(0, 0, w, h);
 
-            // 速度基准系数：60fps下，1个单位的速度相当于每秒 60 单位
-            // 所以我们乘以 60 来标准化速度
-            const speedFactor = 60; 
-
             if (isParticleGenerating && !isParticleFrozen) {
-                if (Math.random() < 0.1) {
+                // 生成概率也要受时间影响，否则高刷屏生成得更多
+                // 之前是每帧 0.1 概率。现在每秒期望生成 0.1 * 60 = 6 个粒子。
+                // 调整生成逻辑：基于时间的概率
+                // 简单处理：使用 while 循环积累生成机会，或者简单地将概率乘以 timeScale
+                if (Math.random() < 0.1 * timeScale) {
                     const sizeRand = Math.random();
                     let sizeMult = 1; 
                     if (sizeRand < 0.25) sizeMult = 0.6;
@@ -487,16 +488,19 @@
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
                 if (!isParticleFrozen) {
-                    // 使用 dt 更新位置： 速度 * 修正系数 * 时间差
-                    p.x += p.vx * speedFactor * dt;
-                    p.y += p.vy * speedFactor * dt;
-                    p.rotation += 2 * speedFactor * dt;
+                    // *** 物理更新：乘以时间因子 ***
+                    p.x += p.vx * timeScale;
+                    p.y += p.vy * timeScale;
+                    p.rotation += 2 * timeScale;
                 }
+                
+                // 边界检查保持不变
                 if ((!isDark && p.y > h + 50) || (isDark && p.y < -50)) {
                     particles.splice(i, 1);
                     i--;
                     continue;
                 }
+                
                 pCtx.save();
                 pCtx.translate(p.x, p.y);
                 pCtx.rotate(p.rotation * Math.PI / 180);
@@ -554,33 +558,6 @@
                     ctx.shadowBlur = 0;
                     ctx.globalAlpha = 1;
                     break;
-            }
-        }
-
-        function updateTimerDisplay() {
-            const totalSeconds = Math.floor(elapsedTime / 1000);
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = totalSeconds % 60;
-
-            const hStr = formatUnit(h, 'h');
-            const mStr = formatUnit(m, 'm');
-            const sStr = formatUnit(s, 's');
-
-            timerEl.textContent = `${hStr} : ${mStr} : ${sStr}`;
-        }
-
-        function formatUnit(val, unitType) {
-            if (val !== 0) {
-                cachedEmojis[unitType] = null;
-                return val.toString().padStart(2, '0');
-            } else {
-                if (!cachedEmojis[unitType]) {
-                    const e1 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-                    const e2 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-                    cachedEmojis[unitType] = e1 + e2;
-                }
-                return cachedEmojis[unitType];
             }
         }
 
