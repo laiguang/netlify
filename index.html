@@ -25,31 +25,19 @@
         [data-theme="winter"] { --bg-color: #98C1D9; --wood-light: #E0FBFC; --wood-dark: #c2dfe0; --container-bg: #F0F8FF; --primary-color: #3D5A80; --secondary-color: #E0FBFC; --text-color: #293241; --btn-shadow: rgba(61, 90, 128, 0.4); }
         [data-theme="dark"] { --bg-color: #293241; --wood-light: #3D5A80; --wood-dark: #2b4566; --container-bg: #222831; --primary-color: #E0FBFC; --secondary-color: rgba(255, 255, 255, 0.1); --text-color: #E0FBFC; --btn-shadow: rgba(0, 0, 0, 0.5); }
 
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        /* 全局禁止选中，防止双击产生选区 */
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+        
         body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Fredoka', sans-serif; background-color: var(--bg-color); transition: background-color 0.5s; display: flex; justify-content: center; align-items: center; }
 
         .wood-layer {
-            position: absolute;
-            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
             background: repeating-linear-gradient(45deg, var(--wood-light), var(--wood-light) 10px, var(--wood-dark) 10px, var(--wood-dark) 20px);
-            border-radius: 20px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
-            z-index: 1;
-            transition: 0.5s;
+            border-radius: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); z-index: 1; transition: 0.5s;
         }
 
         .container {
-            position: relative;
-            z-index: 10;
-            background-color: var(--container-bg);
-            border-radius: var(--radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-evenly;
-            padding: 30px 20px;
-            transition: background-color 0.5s;
+            position: relative; z-index: 10; background-color: var(--container-bg); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 30px 20px; transition: background-color 0.5s;
         }
 
         @media (max-width: 600px) {
@@ -57,45 +45,24 @@
             :root { --timer-font-size: clamp(1.8rem, 9vw, 2.5rem); }
             .level-wrapper { width: 140px; height: 140px; }
         }
+
         @media (min-width: 601px) {
             .container { width: 450px; height: 600px; }
             :root { --timer-font-size: 3.5rem; }
             .level-wrapper { width: 180px; height: 180px; }
         }
 
-        #particle-canvas, .fullscreen-canvas {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 20; pointer-events: none;
-        }
-
+        #particle-canvas, .fullscreen-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 20; pointer-events: none; }
         .level-wrapper { position: relative; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         #level-canvas { width: 100%; height: 100%; border-radius: 50%; }
 
         .timer-display {
-            font-size: var(--timer-font-size);
-            font-weight: 600;
-            color: var(--text-color);
-            letter-spacing: 1px;
-            text-align: center;
-            font-variant-numeric: tabular-nums;
-            height: auto;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap; 
-            width: 100%;
-            cursor: pointer; 
-            touch-action: manipulation;
+            font-size: var(--timer-font-size); font-weight: 600; color: var(--text-color); letter-spacing: 1px; text-align: center; font-variant-numeric: tabular-nums; height: auto; min-height: 60px; display: flex; align-items: center; justify-content: center; white-space: nowrap; width: 100%; cursor: pointer;
+            touch-action: manipulation; /* 优化触控 */
         }
 
         .controls { display: flex; gap: 20px; height: 90px; align-items: center; justify-content: center; width: 100%; flex-shrink: 0; }
-        .btn {
-            width: 76px; height: 76px; border-radius: 26px; border: none;
-            background-color: var(--secondary-color); color: var(--primary-color);
-            cursor: pointer; box-shadow: 0 6px 0 var(--btn-shadow); transition: all 0.15s;
-            display: flex; justify-content: center; align-items: center; position: relative;
-        }
+        .btn { width: 76px; height: 76px; border-radius: 26px; border: none; background-color: var(--secondary-color); color: var(--primary-color); cursor: pointer; box-shadow: 0 6px 0 var(--btn-shadow); transition: all 0.15s; display: flex; justify-content: center; align-items: center; position: relative; }
         .btn svg { width: 55%; height: 55%; fill: currentColor; pointer-events: none; }
         .btn:active { transform: translateY(6px); box-shadow: 0 0 0 var(--btn-shadow); }
         .btn.hidden { display: none; }
@@ -111,11 +78,21 @@
         <div class="level-wrapper">
             <canvas id="level-canvas" width="360" height="360"></canvas>
         </div>
-        <div class="timer-display" id="timer">00 : 00 : 00</div>
+
+        <div class="timer-display" id="timer">
+            00 : 00 : 00
+        </div>
+
         <div class="controls">
-            <button class="btn" id="btn-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-            <button class="btn hidden" id="btn-pause"><svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
-            <button class="btn hidden" id="btn-restart"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 5.52 4.48 10 10 10s10-4.48 10-10S19.52 5 12 5z"/></svg></button>
+            <button class="btn" id="btn-play">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="btn hidden" id="btn-pause">
+                <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="btn hidden" id="btn-restart">
+                <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 5.52 4.48 10 10 10s10-4.48 10-10S19.52 5 12 5z"/></svg>
+            </button>
         </div>
     </div>
 
@@ -165,29 +142,19 @@
         let isParticleGenerating = false;
         let isParticleFrozen = false;
 
-        // Delta Time 变量
+        // --- 核心修复：Delta Time 变量 ---
         let lastFrameTime = 0;
+        // -----------------------------
 
         function init() {
             resizeCanvases();
             window.addEventListener('resize', resizeCanvases);
             window.addEventListener('keydown', handleKeydown);
             
-            // --- 优化后的双击检测 (自定义逻辑代替 dblclick) ---
-            let lastTapTime = 0;
-            timerEl.addEventListener('click', (e) => {
-                if (isMobileOrTablet) {
-                    const currentTime = new Date().getTime();
-                    const tapLength = currentTime - lastTapTime;
-                    if (tapLength < 300 && tapLength > 0) {
-                        // 这是一个双击
-                        e.preventDefault();
-                        switchTheme();
-                        lastTapTime = 0; // 重置防止三击触发
-                    } else {
-                        lastTapTime = currentTime;
-                    }
-                }
+            // 阻止双击默认行为（如缩放或选中文本）
+            timerEl.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                handleTimerDoubleTap(e);
             });
 
             btnPlay.addEventListener('click', handlePlayClick);
@@ -199,9 +166,24 @@
             });
 
             updateTimerDisplay();
+            
             // 启动循环
             requestAnimationFrame(renderLoop);
+            
             initOrientation();
+        }
+
+        function handleTimerDoubleTap(e) {
+            if (isMobileOrTablet) {
+                switchTheme();
+            }
+        }
+
+        function handleKeydown(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                switchTheme();
+            }
         }
 
         function switchTheme() {
@@ -219,191 +201,6 @@
             particleCanvas.style.height = h + 'px';
             pCtx.setTransform(1, 0, 0, 1, 0, 0); 
             pCtx.scale(dpr, dpr);
-        }
-
-        // --- 核心修改：Delta Time 渲染循环 ---
-        function renderLoop(timestamp) {
-            // 初始化上一帧时间
-            if (!lastFrameTime) lastFrameTime = timestamp;
-            
-            // 计算时间差 (ms)
-            const deltaTime = timestamp - lastFrameTime;
-            lastFrameTime = timestamp;
-
-            // 如果时间差过大（例如切换标签页回来），则重置，防止粒子瞬移
-            if (deltaTime > 100) {
-                requestAnimationFrame(renderLoop);
-                return;
-            }
-
-            drawLevel();
-            drawParticles(deltaTime); // 传入 delta time
-
-            requestAnimationFrame(renderLoop);
-        }
-
-        function drawLevel() {
-            // 水平仪逻辑不需要 DeltaTime，因为它是实时响应传感器数据的
-            const w = levelCanvas.width;
-            const h = levelCanvas.height;
-            const cx = w / 2;
-            const cy = h / 2;
-            const radius = w / 2 - 10;
-            const maxOffset = radius * 0.8;
-            const config = DEVICE_CONFIG[getDeviceType()];
-            const maxTilt = config.maxTilt;
-
-            lCtx.clearRect(0, 0, w, h);
-
-            let dx = (tiltX / maxTilt) * maxOffset;
-            let dy = (tiltY / maxTilt) * maxOffset;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            
-            if (dist > maxOffset) {
-                const angle = Math.atan2(dy, dx);
-                dx = Math.cos(angle) * maxOffset;
-                dy = Math.sin(angle) * maxOffset;
-            }
-
-            const degDiff = Math.sqrt(tiltX*tiltX + tiltY*tiltY);
-            isLevel = degDiff <= TOLERANCE;
-
-            const gray = '#E0E0E0';
-            const red = '#FF6B6B';
-            const green = getComputedStyle(document.body).getPropertyValue('--accent-green').trim() || '#95D5B2';
-            const mainColor = isLevel ? green : gray;
-
-            lCtx.lineWidth = 6;
-            lCtx.strokeStyle = mainColor;
-            lCtx.beginPath();
-            lCtx.arc(cx, cy, radius, 0, Math.PI * 2);
-            lCtx.stroke();
-
-            if (isLevel) {
-                lCtx.lineWidth = 4;
-                lCtx.strokeStyle = mainColor + '66';
-                lCtx.beginPath();
-                lCtx.arc(cx, cy, radius - 8, 0, Math.PI * 2);
-                lCtx.stroke();
-            } else {
-                lCtx.lineWidth = 2;
-                lCtx.strokeStyle = '#f0f0f0';
-                lCtx.beginPath();
-                lCtx.moveTo(cx - radius + 20, cy); lCtx.lineTo(cx + radius - 20, cy);
-                lCtx.moveTo(cx, cy - radius + 20); lCtx.lineTo(cx, cy + radius - 20);
-                lCtx.stroke();
-                const toleranceRadius = (TOLERANCE / maxTilt) * maxOffset;
-                lCtx.beginPath();
-                lCtx.setLineDash([5, 5]);
-                lCtx.strokeStyle = red;
-                lCtx.lineWidth = 2;
-                lCtx.arc(cx, cy, toleranceRadius, 0, Math.PI * 2);
-                lCtx.stroke();
-                lCtx.setLineDash([]);
-            }
-
-            const bubbleX = cx + dx;
-            const bubbleY = cy + dy;
-
-            if (isLevel) {
-                lCtx.lineWidth = 4;
-                lCtx.strokeStyle = green;
-                lCtx.beginPath();
-                lCtx.arc(bubbleX, bubbleY, 15, 0, Math.PI * 2);
-                lCtx.stroke();
-            } else {
-                lCtx.fillStyle = red;
-                lCtx.beginPath();
-                lCtx.arc(bubbleX, bubbleY, 12, 0, Math.PI * 2);
-                lCtx.fill();
-            }
-        }
-
-        // --- 核心修改：基于 Delta Time 的物理运动 ---
-        function drawParticles(dt) {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            const theme = document.body.getAttribute('data-theme');
-            const isDark = theme === 'dark';
-            const config = DEVICE_CONFIG[getDeviceType()];
-            const baseSize = config.particleBaseSize;
-
-            // 计算速度系数：目标是 60fps (每帧约16.67ms)
-            // 如果屏幕是 120Hz (每帧8ms)，dt=8，则系数为 0.5，移动距离减半，总速度不变
-            const timeFactor = dt / 16.67; 
-
-            pCtx.clearRect(0, 0, w, h);
-
-            if (isParticleGenerating && !isParticleFrozen) {
-                // 生成逻辑也需要考虑时间系数，防止高刷屏生成过多粒子
-                // 原始逻辑：每帧 0.1 概率。现在改为：每 16ms 约 0.1 概率
-                if (Math.random() < 0.1 * timeFactor) {
-                    const sizeRand = Math.random();
-                    let sizeMult = 1; 
-                    if (sizeRand < 0.25) sizeMult = 0.6;
-                    else if (sizeRand < 0.75) sizeMult = 1.2;
-                    else sizeMult = 0.6;
-                    
-                    particles.push({
-                        x: Math.random() * w,
-                        y: isDark ? h + 20 : -20,
-                        // 基础速度定义 (Pixels per Frame @ 60Hz)
-                        vx: (Math.random() - 0.5) * 2,
-                        vy: isDark ? -(Math.random() * 2 + 1) : (Math.random() * 2 + 1),
-                        size: baseSize * sizeMult,
-                        rotation: Math.random() * 360,
-                        rotSpeed: 2, // 旋转速度
-                        type: theme
-                    });
-                }
-            }
-
-            for (let i = 0; i < particles.length; i++) {
-                const p = particles[i];
-                if (!isParticleFrozen) {
-                    // 乘以 timeFactor 保证恒定速度
-                    p.x += p.vx * timeFactor;
-                    p.y += p.vy * timeFactor;
-                    p.rotation += p.rotSpeed * timeFactor;
-                }
-                if ((!isDark && p.y > h + 50) || (isDark && p.y < -50)) {
-                    particles.splice(i, 1);
-                    i--;
-                    continue;
-                }
-                pCtx.save();
-                pCtx.translate(p.x, p.y);
-                pCtx.rotate(p.rotation * Math.PI / 180);
-                drawThemeShape(pCtx, p.type, p.size);
-                pCtx.restore();
-            }
-        }
-
-        function drawThemeShape(ctx, theme, size) {
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary-color');
-            ctx.strokeStyle = ctx.fillStyle;
-            
-            switch(theme) {
-                case 'spring':
-                    ctx.beginPath(); ctx.ellipse(0, 0, size/2, size, 0, 0, Math.PI*2); ctx.fill();
-                    break;
-                case 'summer':
-                    ctx.lineWidth = size/5;
-                    ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.stroke();
-                    ctx.beginPath(); ctx.arc(size/6, -size/6, size/10, 0, Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fill();
-                    break;
-                case 'autumn':
-                    ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size/1.5, 0); ctx.lineTo(0, size); ctx.lineTo(-size/1.5, 0); ctx.closePath(); ctx.fill();
-                    break;
-                case 'winter':
-                    ctx.fillStyle = '#FFFFFF'; ctx.shadowBlur = 5; ctx.shadowColor = '#FFFFFF';
-                    ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
-                    break;
-                case 'dark':
-                    ctx.fillStyle = '#F4D35E'; ctx.shadowBlur = 10; ctx.shadowColor = '#F4D35E'; ctx.globalAlpha = 0.8;
-                    ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
-                    break;
-            }
         }
 
         async function handlePlayClick() {
@@ -484,15 +281,189 @@
             btnPause.classList.add('hidden');
         }
 
+        // --- 核心修复：基于时间的渲染循环 ---
+        function renderLoop(timestamp) {
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            
+            // 计算时间差 (Delta Time)
+            const deltaTime = timestamp - lastFrameTime;
+            lastFrameTime = timestamp;
+
+            // 限制 deltaTime，防止切后台回来后粒子瞬间跳跃
+            // 如果卡顿超过 100ms，就按 100ms 算
+            const safeDelta = Math.min(deltaTime, 100);
+
+            drawLevel();
+            // 传入 safeDelta 进行物理计算
+            drawParticles(safeDelta);
+            
+            requestAnimationFrame(renderLoop);
+        }
+
+        function drawLevel() {
+            // 水平仪绘制逻辑 (无需 delta time，因为是瞬时状态)
+            const w = levelCanvas.width;
+            const h = levelCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const radius = w / 2 - 10;
+            const maxOffset = radius * 0.8;
+            const config = DEVICE_CONFIG[getDeviceType()];
+            const maxTilt = config.maxTilt;
+
+            lCtx.clearRect(0, 0, w, h);
+
+            let dx = (tiltX / maxTilt) * maxOffset;
+            let dy = (tiltY / maxTilt) * maxOffset;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > maxOffset) {
+                const angle = Math.atan2(dy, dx);
+                dx = Math.cos(angle) * maxOffset;
+                dy = Math.sin(angle) * maxOffset;
+            }
+
+            const degDiff = Math.sqrt(tiltX*tiltX + tiltY*tiltY);
+            isLevel = degDiff <= TOLERANCE;
+
+            const gray = '#E0E0E0';
+            const red = '#FF6B6B';
+            const green = getComputedStyle(document.body).getPropertyValue('--accent-green').trim() || '#95D5B2';
+            const mainColor = isLevel ? green : gray;
+
+            lCtx.lineWidth = 6;
+            lCtx.strokeStyle = mainColor;
+            lCtx.beginPath();
+            lCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            lCtx.stroke();
+
+            if (isLevel) {
+                lCtx.lineWidth = 4;
+                lCtx.strokeStyle = mainColor + '66';
+                lCtx.beginPath();
+                lCtx.arc(cx, cy, radius - 8, 0, Math.PI * 2);
+                lCtx.stroke();
+            }
+
+            if (!isLevel) {
+                lCtx.lineWidth = 2;
+                lCtx.strokeStyle = '#f0f0f0';
+                lCtx.beginPath();
+                lCtx.moveTo(cx - radius + 20, cy); lCtx.lineTo(cx + radius - 20, cy);
+                lCtx.moveTo(cx, cy - radius + 20); lCtx.lineTo(cx, cy + radius - 20);
+                lCtx.stroke();
+                const toleranceRadius = (TOLERANCE / maxTilt) * maxOffset;
+                lCtx.beginPath();
+                lCtx.setLineDash([5, 5]);
+                lCtx.strokeStyle = red;
+                lCtx.lineWidth = 2;
+                lCtx.arc(cx, cy, toleranceRadius, 0, Math.PI * 2);
+                lCtx.stroke();
+                lCtx.setLineDash([]);
+            }
+
+            const bubbleX = cx + dx;
+            const bubbleY = cy + dy;
+
+            if (isLevel) {
+                lCtx.lineWidth = 4;
+                lCtx.strokeStyle = green;
+                lCtx.beginPath();
+                lCtx.arc(bubbleX, bubbleY, 15, 0, Math.PI * 2);
+                lCtx.stroke();
+            } else {
+                lCtx.fillStyle = red;
+                lCtx.beginPath();
+                lCtx.arc(bubbleX, bubbleY, 12, 0, Math.PI * 2);
+                lCtx.fill();
+            }
+        }
+
+        // --- 核心修复：接收 delta time 的粒子系统 ---
+        function drawParticles(dt) {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const theme = document.body.getAttribute('data-theme');
+            const isDark = theme === 'dark';
+            const config = DEVICE_CONFIG[getDeviceType()];
+            const baseSize = config.particleBaseSize;
+
+            pCtx.clearRect(0, 0, w, h);
+
+            // 标准化时间因子：假设目标是 60fps (16.6ms/帧)
+            // 如果当前是 120fps，dt 约为 8.3ms，timeFactor 为 0.5。移动距离减半，总速度不变。
+            const timeFactor = dt / 16.67; 
+
+            if (isParticleGenerating && !isParticleFrozen) {
+                // 生成概率也要随时间调整，防止高刷屏生成过多
+                if (Math.random() < (0.1 * timeFactor)) {
+                    const sizeRand = Math.random();
+                    let sizeMult = 1; 
+                    if (sizeRand < 0.25) sizeMult = 0.6;
+                    else if (sizeRand < 0.75) sizeMult = 1.2;
+                    else sizeMult = 0.6;
+                    
+                    let size = baseSize * sizeMult;
+
+                    particles.push({
+                        x: Math.random() * w,
+                        y: isDark ? h + 20 : -20,
+                        // 速度定义为：像素/帧 (在60fps基准下)
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: isDark ? -(Math.random() * 2 + 1) : (Math.random() * 2 + 1),
+                        size: size,
+                        rotation: Math.random() * 360,
+                        type: theme
+                    });
+                }
+            }
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                if (!isParticleFrozen) {
+                    // --- 使用时间因子更新位置 ---
+                    p.x += p.vx * timeFactor;
+                    p.y += p.vy * timeFactor;
+                    p.rotation += 2 * timeFactor;
+                }
+                if ((!isDark && p.y > h + 50) || (isDark && p.y < -50)) {
+                    particles.splice(i, 1);
+                    i--;
+                    continue;
+                }
+                pCtx.save();
+                pCtx.translate(p.x, p.y);
+                pCtx.rotate(p.rotation * Math.PI / 180);
+                drawThemeShape(pCtx, p.type, p.size);
+                pCtx.restore();
+            }
+        }
+
+        function drawThemeShape(ctx, theme, size) {
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary-color');
+            ctx.strokeStyle = ctx.fillStyle;
+            
+            switch(theme) {
+                case 'spring':
+                    ctx.beginPath(); ctx.ellipse(0, 0, size/2, size, 0, 0, Math.PI*2); ctx.fill(); break;
+                case 'summer':
+                    ctx.lineWidth = size/5; ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(size/6, -size/6, size/10, 0, Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fill(); break;
+                case 'autumn':
+                    ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size/1.5, 0); ctx.lineTo(0, size); ctx.lineTo(-size/1.5, 0); ctx.closePath(); ctx.fill(); break;
+                case 'winter':
+                    ctx.fillStyle = '#FFFFFF'; ctx.shadowBlur = 5; ctx.shadowColor = '#FFFFFF'; ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0; break;
+                case 'dark':
+                    ctx.fillStyle = '#F4D35E'; ctx.shadowBlur = 10; ctx.shadowColor = '#F4D35E'; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0; ctx.globalAlpha = 1; break;
+            }
+        }
+
         function updateTimerDisplay() {
             const totalSeconds = Math.floor(elapsedTime / 1000);
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60);
             const s = totalSeconds % 60;
-            const hStr = formatUnit(h, 'h');
-            const mStr = formatUnit(m, 'm');
-            const sStr = formatUnit(s, 's');
-            timerEl.textContent = `${hStr} : ${mStr} : ${sStr}`;
+            timerEl.textContent = `${formatUnit(h, 'h')} : ${formatUnit(m, 'm')} : ${formatUnit(s, 's')}`;
         }
 
         function formatUnit(val, unitType) {
@@ -506,13 +477,6 @@
                     cachedEmojis[unitType] = e1 + e2;
                 }
                 return cachedEmojis[unitType];
-            }
-        }
-
-        function handleKeydown(e) {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                switchTheme();
             }
         }
 
