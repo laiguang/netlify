@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cozy Focus Timer Mobile Optimized</title>
+    <title>水平仪计时器</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -16,12 +16,10 @@
             --text-color: #5D4037;
             --btn-shadow: rgba(226, 125, 96, 0.4);
             
-            /* --- 调试配置区：字体大小 --- */
             --timer-font-size: clamp(2rem, 8vw, 2.5rem); 
             --radius: 36px;
         }
 
-        /* 主题定义 */
         [data-theme="summer"] { --bg-color: #95D5B2; --wood-light: #B7E4C7; --wood-dark: #74C69D; --container-bg: #F0FFF4; --primary-color: #40916C; --secondary-color: #B7E4C7; --text-color: #1B4332; --btn-shadow: rgba(64, 145, 108, 0.4); }
         [data-theme="autumn"] { --bg-color: #E29578; --wood-light: #F6BD60; --wood-dark: #dba64e; --container-bg: #FFF8E7; --primary-color: #A65D48; --secondary-color: #F6BD60; --text-color: #5D3A29; --btn-shadow: rgba(166, 93, 72, 0.4); }
         [data-theme="winter"] { --bg-color: #98C1D9; --wood-light: #E0FBFC; --wood-dark: #c2dfe0; --container-bg: #F0F8FF; --primary-color: #3D5A80; --secondary-color: #E0FBFC; --text-color: #293241; --btn-shadow: rgba(61, 90, 128, 0.4); }
@@ -40,7 +38,6 @@
             transition: 0.5s;
         }
 
-        /* --- 布局策略 --- */
         .container {
             position: relative;
             z-index: 10;
@@ -55,14 +52,11 @@
             transition: background-color 0.5s;
         }
 
-        /* 手机端 */
         @media (max-width: 600px) {
             .container { width: 88vw; height: 65vh; min-height: 400px; max-height: 600px; }
             :root { --timer-font-size: clamp(1.8rem, 9vw, 2.5rem); }
             .level-wrapper { width: 140px; height: 140px; }
         }
-
-        /* 平板/桌面端 */
         @media (min-width: 601px) {
             .container { width: 450px; height: 600px; }
             :root { --timer-font-size: 3.5rem; }
@@ -74,9 +68,7 @@
             z-index: 20; pointer-events: none;
         }
 
-        .level-wrapper {
-            position: relative; display: flex; justify-content: center; align-items: center; flex-shrink: 0;
-        }
+        .level-wrapper { position: relative; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         #level-canvas { width: 100%; height: 100%; border-radius: 50%; }
 
         .timer-display {
@@ -93,27 +85,16 @@
             justify-content: center;
             white-space: nowrap; 
             width: 100%;
-            cursor: pointer; /* 提示可点击 */
-            touch-action: manipulation; /* 优化触摸响应，禁止双击缩放 */
+            cursor: pointer; 
+            touch-action: manipulation;
         }
 
-        .controls {
-            display: flex; gap: 20px; height: 90px;
-            align-items: center; justify-content: center; width: 100%;
-            flex-shrink: 0;
-        }
-
+        .controls { display: flex; gap: 20px; height: 90px; align-items: center; justify-content: center; width: 100%; flex-shrink: 0; }
         .btn {
-            width: 76px; height: 76px;
-            border-radius: 26px;
-            border: none;
-            background-color: var(--secondary-color);
-            color: var(--primary-color);
-            cursor: pointer;
-            box-shadow: 0 6px 0 var(--btn-shadow);
-            transition: all 0.15s;
-            display: flex; justify-content: center; align-items: center;
-            position: relative;
+            width: 76px; height: 76px; border-radius: 26px; border: none;
+            background-color: var(--secondary-color); color: var(--primary-color);
+            cursor: pointer; box-shadow: 0 6px 0 var(--btn-shadow); transition: all 0.15s;
+            display: flex; justify-content: center; align-items: center; position: relative;
         }
         .btn svg { width: 55%; height: 55%; fill: currentColor; pointer-events: none; }
         .btn:active { transform: translateY(6px); box-shadow: 0 0 0 var(--btn-shadow); }
@@ -130,21 +111,11 @@
         <div class="level-wrapper">
             <canvas id="level-canvas" width="360" height="360"></canvas>
         </div>
-
-        <div class="timer-display" id="timer">
-            00 : 00 : 00
-        </div>
-
+        <div class="timer-display" id="timer">00 : 00 : 00</div>
         <div class="controls">
-            <button class="btn" id="btn-play">
-                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-            <button class="btn hidden" id="btn-pause">
-                <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            </button>
-            <button class="btn hidden" id="btn-restart">
-                <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 5.52 4.48 10 10 10s10-4.48 10-10S19.52 5 12 5z"/></svg>
-            </button>
+            <button class="btn" id="btn-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+            <button class="btn hidden" id="btn-pause"><svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
+            <button class="btn hidden" id="btn-restart"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 5.52 4.48 10 10 10s10-4.48 10-10S19.52 5 12 5z"/></svg></button>
         </div>
     </div>
 
@@ -186,7 +157,6 @@
         let tiltX = 0, tiltY = 0;
         let isLevel = false;
         
-        // 检测移动设备 (UA检测 + 触控点检测，涵盖 iPad)
         let isMobileOrTablet = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
                                || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
         
@@ -195,14 +165,30 @@
         let isParticleGenerating = false;
         let isParticleFrozen = false;
 
+        // Delta Time 变量
+        let lastFrameTime = 0;
+
         function init() {
             resizeCanvases();
             window.addEventListener('resize', resizeCanvases);
-            
             window.addEventListener('keydown', handleKeydown);
             
-            // --- 新增：手机/平板双击切换主题 ---
-            timerEl.addEventListener('dblclick', handleTimerDoubleTap);
+            // --- 优化后的双击检测 (自定义逻辑代替 dblclick) ---
+            let lastTapTime = 0;
+            timerEl.addEventListener('click', (e) => {
+                if (isMobileOrTablet) {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTapTime;
+                    if (tapLength < 300 && tapLength > 0) {
+                        // 这是一个双击
+                        e.preventDefault();
+                        switchTheme();
+                        lastTapTime = 0; // 重置防止三击触发
+                    } else {
+                        lastTapTime = currentTime;
+                    }
+                }
+            });
 
             btnPlay.addEventListener('click', handlePlayClick);
             btnPause.addEventListener('click', handlePause);
@@ -213,47 +199,211 @@
             });
 
             updateTimerDisplay();
+            // 启动循环
             requestAnimationFrame(renderLoop);
             initOrientation();
         }
 
-        // --- 新增：双击处理逻辑 ---
-        function handleTimerDoubleTap(e) {
-            // 如果是移动设备或平板（支持触控），则允许切换
-            // 电脑端（鼠标操作）被排除
-            if (isMobileOrTablet) {
-                e.preventDefault(); // 防止选中文本
-                switchTheme();
-            }
-        }
-
-        function handleKeydown(e) {
-            // 电脑端保留空格切换
-            if (e.code === 'Space') {
-                e.preventDefault();
-                switchTheme();
-            }
-        }
-
-        // 统一的主题切换函数
         function switchTheme() {
             themeIndex = (themeIndex + 1) % THEMES.length;
             document.body.setAttribute('data-theme', THEMES[themeIndex]);
-            // 如果粒子被冻结，切换主题时它们会变换形态，增加趣味性
         }
 
         function resizeCanvases() {
             const dpr = window.devicePixelRatio || 1;
             const w = window.innerWidth;
             const h = window.innerHeight;
-            
             particleCanvas.width = w * dpr;
             particleCanvas.height = h * dpr;
             particleCanvas.style.width = w + 'px';
             particleCanvas.style.height = h + 'px';
-            
             pCtx.setTransform(1, 0, 0, 1, 0, 0); 
             pCtx.scale(dpr, dpr);
+        }
+
+        // --- 核心修改：Delta Time 渲染循环 ---
+        function renderLoop(timestamp) {
+            // 初始化上一帧时间
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            
+            // 计算时间差 (ms)
+            const deltaTime = timestamp - lastFrameTime;
+            lastFrameTime = timestamp;
+
+            // 如果时间差过大（例如切换标签页回来），则重置，防止粒子瞬移
+            if (deltaTime > 100) {
+                requestAnimationFrame(renderLoop);
+                return;
+            }
+
+            drawLevel();
+            drawParticles(deltaTime); // 传入 delta time
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        function drawLevel() {
+            // 水平仪逻辑不需要 DeltaTime，因为它是实时响应传感器数据的
+            const w = levelCanvas.width;
+            const h = levelCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const radius = w / 2 - 10;
+            const maxOffset = radius * 0.8;
+            const config = DEVICE_CONFIG[getDeviceType()];
+            const maxTilt = config.maxTilt;
+
+            lCtx.clearRect(0, 0, w, h);
+
+            let dx = (tiltX / maxTilt) * maxOffset;
+            let dy = (tiltY / maxTilt) * maxOffset;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > maxOffset) {
+                const angle = Math.atan2(dy, dx);
+                dx = Math.cos(angle) * maxOffset;
+                dy = Math.sin(angle) * maxOffset;
+            }
+
+            const degDiff = Math.sqrt(tiltX*tiltX + tiltY*tiltY);
+            isLevel = degDiff <= TOLERANCE;
+
+            const gray = '#E0E0E0';
+            const red = '#FF6B6B';
+            const green = getComputedStyle(document.body).getPropertyValue('--accent-green').trim() || '#95D5B2';
+            const mainColor = isLevel ? green : gray;
+
+            lCtx.lineWidth = 6;
+            lCtx.strokeStyle = mainColor;
+            lCtx.beginPath();
+            lCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            lCtx.stroke();
+
+            if (isLevel) {
+                lCtx.lineWidth = 4;
+                lCtx.strokeStyle = mainColor + '66';
+                lCtx.beginPath();
+                lCtx.arc(cx, cy, radius - 8, 0, Math.PI * 2);
+                lCtx.stroke();
+            } else {
+                lCtx.lineWidth = 2;
+                lCtx.strokeStyle = '#f0f0f0';
+                lCtx.beginPath();
+                lCtx.moveTo(cx - radius + 20, cy); lCtx.lineTo(cx + radius - 20, cy);
+                lCtx.moveTo(cx, cy - radius + 20); lCtx.lineTo(cx, cy + radius - 20);
+                lCtx.stroke();
+                const toleranceRadius = (TOLERANCE / maxTilt) * maxOffset;
+                lCtx.beginPath();
+                lCtx.setLineDash([5, 5]);
+                lCtx.strokeStyle = red;
+                lCtx.lineWidth = 2;
+                lCtx.arc(cx, cy, toleranceRadius, 0, Math.PI * 2);
+                lCtx.stroke();
+                lCtx.setLineDash([]);
+            }
+
+            const bubbleX = cx + dx;
+            const bubbleY = cy + dy;
+
+            if (isLevel) {
+                lCtx.lineWidth = 4;
+                lCtx.strokeStyle = green;
+                lCtx.beginPath();
+                lCtx.arc(bubbleX, bubbleY, 15, 0, Math.PI * 2);
+                lCtx.stroke();
+            } else {
+                lCtx.fillStyle = red;
+                lCtx.beginPath();
+                lCtx.arc(bubbleX, bubbleY, 12, 0, Math.PI * 2);
+                lCtx.fill();
+            }
+        }
+
+        // --- 核心修改：基于 Delta Time 的物理运动 ---
+        function drawParticles(dt) {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const theme = document.body.getAttribute('data-theme');
+            const isDark = theme === 'dark';
+            const config = DEVICE_CONFIG[getDeviceType()];
+            const baseSize = config.particleBaseSize;
+
+            // 计算速度系数：目标是 60fps (每帧约16.67ms)
+            // 如果屏幕是 120Hz (每帧8ms)，dt=8，则系数为 0.5，移动距离减半，总速度不变
+            const timeFactor = dt / 16.67; 
+
+            pCtx.clearRect(0, 0, w, h);
+
+            if (isParticleGenerating && !isParticleFrozen) {
+                // 生成逻辑也需要考虑时间系数，防止高刷屏生成过多粒子
+                // 原始逻辑：每帧 0.1 概率。现在改为：每 16ms 约 0.1 概率
+                if (Math.random() < 0.1 * timeFactor) {
+                    const sizeRand = Math.random();
+                    let sizeMult = 1; 
+                    if (sizeRand < 0.25) sizeMult = 0.6;
+                    else if (sizeRand < 0.75) sizeMult = 1.2;
+                    else sizeMult = 0.6;
+                    
+                    particles.push({
+                        x: Math.random() * w,
+                        y: isDark ? h + 20 : -20,
+                        // 基础速度定义 (Pixels per Frame @ 60Hz)
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: isDark ? -(Math.random() * 2 + 1) : (Math.random() * 2 + 1),
+                        size: baseSize * sizeMult,
+                        rotation: Math.random() * 360,
+                        rotSpeed: 2, // 旋转速度
+                        type: theme
+                    });
+                }
+            }
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                if (!isParticleFrozen) {
+                    // 乘以 timeFactor 保证恒定速度
+                    p.x += p.vx * timeFactor;
+                    p.y += p.vy * timeFactor;
+                    p.rotation += p.rotSpeed * timeFactor;
+                }
+                if ((!isDark && p.y > h + 50) || (isDark && p.y < -50)) {
+                    particles.splice(i, 1);
+                    i--;
+                    continue;
+                }
+                pCtx.save();
+                pCtx.translate(p.x, p.y);
+                pCtx.rotate(p.rotation * Math.PI / 180);
+                drawThemeShape(pCtx, p.type, p.size);
+                pCtx.restore();
+            }
+        }
+
+        function drawThemeShape(ctx, theme, size) {
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary-color');
+            ctx.strokeStyle = ctx.fillStyle;
+            
+            switch(theme) {
+                case 'spring':
+                    ctx.beginPath(); ctx.ellipse(0, 0, size/2, size, 0, 0, Math.PI*2); ctx.fill();
+                    break;
+                case 'summer':
+                    ctx.lineWidth = size/5;
+                    ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(size/6, -size/6, size/10, 0, Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fill();
+                    break;
+                case 'autumn':
+                    ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size/1.5, 0); ctx.lineTo(0, size); ctx.lineTo(-size/1.5, 0); ctx.closePath(); ctx.fill();
+                    break;
+                case 'winter':
+                    ctx.fillStyle = '#FFFFFF'; ctx.shadowBlur = 5; ctx.shadowColor = '#FFFFFF';
+                    ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+                    break;
+                case 'dark':
+                    ctx.fillStyle = '#F4D35E'; ctx.shadowBlur = 10; ctx.shadowColor = '#F4D35E'; ctx.globalAlpha = 0.8;
+                    ctx.beginPath(); ctx.arc(0, 0, size/3, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+                    break;
+            }
         }
 
         async function handlePlayClick() {
@@ -334,204 +484,14 @@
             btnPause.classList.add('hidden');
         }
 
-        function renderLoop() {
-            drawLevel();
-            drawParticles();
-            requestAnimationFrame(renderLoop);
-        }
-
-        function drawLevel() {
-            const w = levelCanvas.width;
-            const h = levelCanvas.height;
-            const cx = w / 2;
-            const cy = h / 2;
-            const radius = w / 2 - 10;
-            const maxOffset = radius * 0.8;
-            const config = DEVICE_CONFIG[getDeviceType()];
-            const maxTilt = config.maxTilt;
-
-            lCtx.clearRect(0, 0, w, h);
-
-            let dx = (tiltX / maxTilt) * maxOffset;
-            let dy = (tiltY / maxTilt) * maxOffset;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            
-            if (dist > maxOffset) {
-                const angle = Math.atan2(dy, dx);
-                dx = Math.cos(angle) * maxOffset;
-                dy = Math.sin(angle) * maxOffset;
-            }
-
-            const degDiff = Math.sqrt(tiltX*tiltX + tiltY*tiltY);
-            isLevel = degDiff <= TOLERANCE;
-
-            const gray = '#E0E0E0';
-            const red = '#FF6B6B';
-            const green = getComputedStyle(document.body).getPropertyValue('--accent-green').trim() || '#95D5B2';
-            const mainColor = isLevel ? green : gray;
-
-            lCtx.lineWidth = 6;
-            lCtx.strokeStyle = mainColor;
-            lCtx.beginPath();
-            lCtx.arc(cx, cy, radius, 0, Math.PI * 2);
-            lCtx.stroke();
-
-            if (isLevel) {
-                lCtx.lineWidth = 4;
-                lCtx.strokeStyle = mainColor + '66';
-                lCtx.beginPath();
-                lCtx.arc(cx, cy, radius - 8, 0, Math.PI * 2);
-                lCtx.stroke();
-            }
-
-            if (!isLevel) {
-                lCtx.lineWidth = 2;
-                lCtx.strokeStyle = '#f0f0f0';
-                lCtx.beginPath();
-                lCtx.moveTo(cx - radius + 20, cy); lCtx.lineTo(cx + radius - 20, cy);
-                lCtx.moveTo(cx, cy - radius + 20); lCtx.lineTo(cx, cy + radius - 20);
-                lCtx.stroke();
-                const toleranceRadius = (TOLERANCE / maxTilt) * maxOffset;
-                lCtx.beginPath();
-                lCtx.setLineDash([5, 5]);
-                lCtx.strokeStyle = red;
-                lCtx.lineWidth = 2;
-                lCtx.arc(cx, cy, toleranceRadius, 0, Math.PI * 2);
-                lCtx.stroke();
-                lCtx.setLineDash([]);
-            }
-
-            const bubbleX = cx + dx;
-            const bubbleY = cy + dy;
-
-            if (isLevel) {
-                lCtx.lineWidth = 4;
-                lCtx.strokeStyle = green;
-                lCtx.beginPath();
-                lCtx.arc(bubbleX, bubbleY, 15, 0, Math.PI * 2);
-                lCtx.stroke();
-            } else {
-                lCtx.fillStyle = red;
-                lCtx.beginPath();
-                lCtx.arc(bubbleX, bubbleY, 12, 0, Math.PI * 2);
-                lCtx.fill();
-            }
-        }
-
-        function drawParticles() {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            const theme = document.body.getAttribute('data-theme');
-            const isDark = theme === 'dark';
-            const config = DEVICE_CONFIG[getDeviceType()];
-            const baseSize = config.particleBaseSize;
-
-            pCtx.clearRect(0, 0, w, h);
-
-            if (isParticleGenerating && !isParticleFrozen) {
-                if (Math.random() < 0.1) {
-                    const sizeRand = Math.random();
-                    let sizeMult = 1; 
-                    if (sizeRand < 0.25) sizeMult = 0.6;
-                    else if (sizeRand < 0.75) sizeMult = 1.2;
-                    else sizeMult = 0.6;
-                    
-                    let size = baseSize * sizeMult;
-
-                    particles.push({
-                        x: Math.random() * w,
-                        y: isDark ? h + 20 : -20,
-                        vx: (Math.random() - 0.5) * 2,
-                        vy: isDark ? -(Math.random() * 2 + 1) : (Math.random() * 2 + 1),
-                        size: size,
-                        rotation: Math.random() * 360,
-                        type: theme
-                    });
-                }
-            }
-
-            for (let i = 0; i < particles.length; i++) {
-                const p = particles[i];
-                if (!isParticleFrozen) {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.rotation += 2;
-                }
-                if ((!isDark && p.y > h + 50) || (isDark && p.y < -50)) {
-                    particles.splice(i, 1);
-                    i--;
-                    continue;
-                }
-                pCtx.save();
-                pCtx.translate(p.x, p.y);
-                pCtx.rotate(p.rotation * Math.PI / 180);
-                drawThemeShape(pCtx, p.type, p.size);
-                pCtx.restore();
-            }
-        }
-
-        function drawThemeShape(ctx, theme, size) {
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary-color');
-            ctx.strokeStyle = ctx.fillStyle;
-            
-            switch(theme) {
-                case 'spring':
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, size/2, size, 0, 0, Math.PI*2);
-                    ctx.fill();
-                    break;
-                case 'summer':
-                    ctx.lineWidth = size/5;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, size/2, 0, Math.PI*2);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.arc(size/6, -size/6, size/10, 0, Math.PI*2);
-                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.fill();
-                    break;
-                case 'autumn':
-                    ctx.beginPath();
-                    ctx.moveTo(0, -size);
-                    ctx.lineTo(size/1.5, 0);
-                    ctx.lineTo(0, size);
-                    ctx.lineTo(-size/1.5, 0);
-                    ctx.closePath();
-                    ctx.fill();
-                    break;
-                case 'winter':
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.shadowBlur = 5;
-                    ctx.shadowColor = '#FFFFFF';
-                    ctx.beginPath();
-                    ctx.arc(0, 0, size/3, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    break;
-                case 'dark':
-                    ctx.fillStyle = '#F4D35E';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#F4D35E';
-                    ctx.globalAlpha = 0.8;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, size/3, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.globalAlpha = 1;
-                    break;
-            }
-        }
-
         function updateTimerDisplay() {
             const totalSeconds = Math.floor(elapsedTime / 1000);
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60);
             const s = totalSeconds % 60;
-
             const hStr = formatUnit(h, 'h');
             const mStr = formatUnit(m, 'm');
             const sStr = formatUnit(s, 's');
-
             timerEl.textContent = `${hStr} : ${mStr} : ${sStr}`;
         }
 
@@ -546,6 +506,13 @@
                     cachedEmojis[unitType] = e1 + e2;
                 }
                 return cachedEmojis[unitType];
+            }
+        }
+
+        function handleKeydown(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                switchTheme();
             }
         }
 
