@@ -518,4 +518,98 @@
                 case 'summer':
                     ctx.lineWidth = size/5;
                     ctx.beginPath();
-                    ctx.arc(0, 0, size
+                    ctx.arc(0, 0, size/2, 0, Math.PI*2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(size/6, -size/6, size/10, 0, Math.PI*2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.fill();
+                    break;
+                case 'autumn':
+                    ctx.beginPath();
+                    ctx.moveTo(0, -size);
+                    ctx.lineTo(size/1.5, 0);
+                    ctx.lineTo(0, size);
+                    ctx.lineTo(-size/1.5, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    break;
+                case 'winter':
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size/3, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    break;
+                case 'dark':
+                    ctx.fillStyle = '#F4D35E';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#F4D35E';
+                    ctx.globalAlpha = 0.8;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size/3, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1;
+                    break;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const totalSeconds = Math.floor(elapsedTime / 1000);
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+
+            const hStr = formatUnit(h, 'h');
+            const mStr = formatUnit(m, 'm');
+            const sStr = formatUnit(s, 's');
+
+            timerEl.textContent = `${hStr} : ${mStr} : ${sStr}`;
+        }
+
+        function formatUnit(val, unitType) {
+            if (val !== 0) {
+                cachedEmojis[unitType] = null;
+                return val.toString().padStart(2, '0');
+            } else {
+                if (!cachedEmojis[unitType]) {
+                    const e1 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+                    const e2 = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+                    cachedEmojis[unitType] = e1 + e2;
+                }
+                return cachedEmojis[unitType];
+            }
+        }
+
+        function initOrientation() {
+            if (window.DeviceOrientationEvent && isMobileOrTablet) {
+                window.addEventListener('deviceorientation', (event) => {
+                    let beta = event.beta || 0;
+                    let gamma = event.gamma || 0;
+                    const config = DEVICE_CONFIG.mobile;
+                    tiltX = Math.max(-config.maxTilt, Math.min(config.maxTilt, gamma));
+                    tiltY = Math.max(-config.maxTilt, Math.min(config.maxTilt, beta));
+                });
+            } else {
+                document.addEventListener('mousemove', (e) => {
+                    if (isMobileOrTablet) return;
+                    const rect = levelCanvas.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const dx = e.clientX - centerX;
+                    const dy = e.clientY - centerY;
+                    const config = DEVICE_CONFIG.desktop;
+                    const scale = config.maxTilt / 100;
+                    tiltX = dx * scale;
+                    tiltY = dy * scale;
+                });
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
